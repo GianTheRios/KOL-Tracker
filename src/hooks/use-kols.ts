@@ -309,19 +309,30 @@ export function useKOLs(): UseKOLsReturn {
     setIsLoading(true);
     setError(null);
 
+    // #region debug log
+    console.log('[useKOLs] Starting fetch...');
+    console.log('[useKOLs] Service available:', service.isAvailable());
+    // #endregion
+
     try {
       if (!service.isAvailable()) {
-        console.log('Supabase not configured, using demo data');
+        console.log('[useKOLs] Supabase not configured, using demo data');
         setKols(demoKOLs);
         setIsDemo(true);
         return;
       }
 
       const data = await service.fetchAllKOLs();
+      // #region debug log
+      console.log('[useKOLs] Fetched data:', data);
+      console.log('[useKOLs] Number of KOLs:', data.length);
+      // #endregion
       setKols(data);
       setIsDemo(false);
     } catch (err) {
-      console.error('Error fetching KOLs:', err);
+      // #region debug log
+      console.error('[useKOLs] Error fetching KOLs:', err);
+      // #endregion
       setError(err instanceof Error ? err : new Error('Failed to fetch KOLs'));
       // Fall back to demo data on error
       setKols(demoKOLs);

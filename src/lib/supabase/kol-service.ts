@@ -102,9 +102,17 @@ export class KOLService {
    */
   async fetchAllKOLs(): Promise<KOLWithRelations[]> {
     if (!this.supabase) {
-      console.warn('Supabase not configured, returning empty array');
+      console.warn('[KOLService] Supabase not configured, returning empty array');
       return [];
     }
+
+    // #region debug log
+    console.log('[KOLService] Fetching KOLs from Supabase...');
+    // Check auth status
+    const { data: { user }, error: authErr } = await this.supabase.auth.getUser();
+    console.log('[KOLService] Current user:', user?.id || 'NOT AUTHENTICATED');
+    if (authErr) console.log('[KOLService] Auth error:', authErr);
+    // #endregion
 
     // Fetch KOLs
     const { data: kols, error: kolError } = await this.supabase
@@ -112,12 +120,17 @@ export class KOLService {
       .select('*')
       .order('created_at', { ascending: false });
 
+    // #region debug log
+    console.log('[KOLService] KOLs query result:', { count: kols?.length, error: kolError });
+    // #endregion
+
     if (kolError) {
-      console.error('Error fetching KOLs:', kolError);
+      console.error('[KOLService] Error fetching KOLs:', kolError);
       throw kolError;
     }
 
     if (!kols || kols.length === 0) {
+      console.log('[KOLService] No KOLs found in database');
       return [];
     }
 
