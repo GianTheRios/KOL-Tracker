@@ -130,6 +130,10 @@ export function AnimatedCounter({
   const ref = useRef<HTMLSpanElement>(null);
   const isInView = useInView(ref, { once: true, amount: 0.5 });
 
+  // Use value as key to force re-mount when value changes from 0 to real value
+  // This ensures the counter re-animates when data loads
+  const animationKey = value > 0 ? `loaded-${value}` : 'loading';
+
   return (
     <motion.span
       ref={ref}
@@ -139,6 +143,7 @@ export function AnimatedCounter({
     >
       {isInView && (
         <motion.span
+          key={animationKey}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
