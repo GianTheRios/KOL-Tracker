@@ -176,3 +176,61 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
 );
 
 Textarea.displayName = 'Textarea';
+
+// Select Input
+export interface SelectInputProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+  label?: string;
+  error?: string;
+  hint?: string;
+  options: { value: string; label: string }[];
+}
+
+export const SelectInput = forwardRef<HTMLSelectElement, SelectInputProps>(
+  ({ label, error, hint, options, className, ...props }, ref) => {
+    return (
+      <div className="w-full">
+        {label && (
+          <label className="block text-sm font-medium text-white mb-2">
+            {label}
+          </label>
+        )}
+        <select
+          ref={ref}
+          className={cn(
+            'w-full h-11 px-4 text-sm appearance-none cursor-pointer',
+            'bg-zinc-900 border border-zinc-700 rounded-xl',
+            'text-white',
+            'transition-all duration-200',
+            'focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20',
+            'disabled:opacity-50 disabled:cursor-not-allowed',
+            error && 'border-red-500 focus:border-red-500 focus:ring-red-500/20',
+            // Add custom dropdown arrow
+            'bg-[url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'m6 8 4 4 4-4\'/%3E%3C/svg%3E")] bg-[length:1.5rem_1.5rem] bg-[right_0.5rem_center] bg-no-repeat pr-10',
+            className
+          )}
+          {...props}
+        >
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        {(error || hint) && (
+          <motion.p
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={cn(
+              'text-xs mt-1.5',
+              error ? 'text-red-500' : 'text-zinc-500'
+            )}
+          >
+            {error || hint}
+          </motion.p>
+        )}
+      </div>
+    );
+  }
+);
+
+SelectInput.displayName = 'SelectInput';

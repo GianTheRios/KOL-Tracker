@@ -101,7 +101,7 @@ export function StaggerContainer({
   );
 }
 
-// Stagger item
+// Stagger item - uses direct initial/animate for dynamic item support
 export function StaggerItem({ 
   children,
   className,
@@ -112,23 +112,21 @@ export function StaggerItem({
   return (
     <motion.div
       className={className || 'h-full'}
-      variants={{
-        hidden: { opacity: 0, y: 20 },
-        visible: { 
-          opacity: 1, 
-          y: 0,
-          transition: {
-            type: 'spring',
-            stiffness: 400,
-            damping: 30,
-          },
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ 
+        opacity: 1, 
+        y: 0,
+        transition: {
+          type: 'spring',
+          stiffness: 400,
+          damping: 30,
         },
-        exit: { 
-          opacity: 0, 
-          y: -10,
-          transition: {
-            duration: 0.15,
-          },
+      }}
+      exit={{ 
+        opacity: 0, 
+        y: -10,
+        transition: {
+          duration: 0.15,
         },
       }}
     >

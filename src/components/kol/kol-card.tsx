@@ -25,9 +25,9 @@ interface KOLCardProps {
     total_impressions?: number;
     num_posts?: number;
   };
-  onEdit?: (kol: KOLProfile) => void;
-  onDelete?: (kol: KOLProfile) => void;
-  onView?: (kol: KOLProfile) => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  onView?: () => void;
 }
 
 export function KOLCard({ kol, onEdit, onDelete, onView }: KOLCardProps) {
@@ -70,21 +70,21 @@ export function KOLCard({ kol, onEdit, onDelete, onView }: KOLCardProps) {
                 className="absolute right-0 top-full mt-1 w-40 py-1 bg-zinc-900 border border-zinc-700 rounded-xl shadow-xl z-10"
               >
                 <button
-                  onClick={() => { onView?.(kol); setMenuOpen(false); }}
+                  onClick={() => { onView?.(); setMenuOpen(false); }}
                   className="flex items-center gap-2 w-full px-3 py-2 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
                 >
                   <Eye className="h-4 w-4" />
                   View details
                 </button>
                 <button
-                  onClick={() => { onEdit?.(kol); setMenuOpen(false); }}
+                  onClick={() => { onEdit?.(); setMenuOpen(false); }}
                   className="flex items-center gap-2 w-full px-3 py-2 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
                 >
                   <Edit className="h-4 w-4" />
                   Edit
                 </button>
                 <button
-                  onClick={() => { onDelete?.(kol); setMenuOpen(false); }}
+                  onClick={() => { onDelete?.(); setMenuOpen(false); }}
                   className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 transition-colors"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -159,7 +159,7 @@ export function KOLCard({ kol, onEdit, onDelete, onView }: KOLCardProps) {
             variant="secondary"
             size="sm"
             className="flex-1"
-            onClick={() => onView?.(kol)}
+            onClick={() => onView?.()}
             leftIcon={<Eye className="h-3.5 w-3.5" />}
           >
             View
@@ -168,7 +168,7 @@ export function KOLCard({ kol, onEdit, onDelete, onView }: KOLCardProps) {
             variant="primary"
             size="sm"
             className="flex-1"
-            onClick={() => onEdit?.(kol)}
+            onClick={() => onEdit?.()}
             leftIcon={<Edit className="h-3.5 w-3.5" />}
           >
             Edit
@@ -239,13 +239,13 @@ export function KOLListItem({ kol, onEdit, onView, index = 0 }: KOLListItemProps
           variant="ghost"
           size="sm"
           icon={<Eye className="h-4 w-4" />}
-          onClick={() => onView?.(kol)}
+          onClick={() => onView?.()}
         />
         <IconButton
           variant="ghost"
           size="sm"
           icon={<Edit className="h-4 w-4" />}
-          onClick={() => onEdit?.(kol)}
+          onClick={() => onEdit?.()}
         />
         <IconButton
           variant="ghost"

@@ -5,9 +5,21 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { SearchInput } from '@/components/ui/input';
 import { KOLCard, KOLListItem } from '@/components/kol/kol-card';
+import { KOLFormDrawer, KOLFormData } from '@/components/kol/kol-form-drawer';
+import { KOLDetailDrawer } from '@/components/kol/kol-detail-drawer';
+import { AddPostDrawer, PostFormData } from '@/components/kol/add-post-drawer';
 import { ScrollReveal, AnimatedCounter } from '@/components/ui/scroll-reveal';
 import { StaggerContainer, StaggerItem } from '@/components/ui/page-transition';
-import { KOLProfile, Platform, KOLStatus } from '@/types';
+import { useKOLs } from '@/hooks/use-kols';
+import { KOLWithRelations } from '@/lib/supabase/kol-service';
+import { ContentPost, KOLDocument } from '@/types';
+
+// Drawer mode type
+type DrawerMode = 'add' | 'edit' | 'view' | null;
+
+// Post drawer mode
+type PostDrawerMode = 'add' | 'edit' | null;
+
 import {
   Plus,
   Grid3X3,
@@ -19,236 +31,220 @@ import {
   DollarSign,
   TrendingUp,
   Eye,
+  AlertCircle,
+  Loader2,
 } from 'lucide-react';
-
-// Real data from spreadsheet
-const demoKOLs: (KOLProfile & { total_followers: number; total_cost: number; average_cpm: number; total_impressions: number; num_posts: number })[] = [
-  {
-    id: '1',
-    user_id: 'demo',
-    name: 'Crypto Wendy',
-    email: 'wendy@crypto.com',
-    telegram_handle: '@cryptowendy',
-    status: 'paid' as KOLStatus,
-    kyc_completed: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    platforms: [
-      { id: '1', kol_id: '1', platform: 'youtube' as Platform, profile_url: 'https://youtube.com', follower_count: 258000, created_at: '', updated_at: '' },
-      { id: '2', kol_id: '1', platform: 'tiktok' as Platform, profile_url: 'https://tiktok.com', follower_count: 299000, created_at: '', updated_at: '' },
-    ],
-    total_followers: 557000,
-    total_cost: 15000,
-    total_impressions: 49700,
-    num_posts: 4,
-    average_cpm: 30.18,
-  },
-  {
-    id: '2',
-    user_id: 'demo',
-    name: 'Joshua Jake',
-    email: 'jake@influencer.io',
-    status: 'in_contact' as KOLStatus,
-    kyc_completed: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    platforms: [
-      { id: '3', kol_id: '2', platform: 'tiktok' as Platform, profile_url: 'https://tiktok.com', follower_count: 705000, created_at: '', updated_at: '' },
-    ],
-    total_followers: 705000,
-    total_cost: 0,
-    total_impressions: 0,
-    num_posts: 0,
-    average_cpm: 0,
-  },
-  {
-    id: '3',
-    user_id: 'demo',
-    name: 'Rise Up Morning Show',
-    email: 'show@riseup.com',
-    status: 'paid' as KOLStatus,
-    kyc_completed: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    platforms: [
-      { id: '4', kol_id: '3', platform: 'tiktok' as Platform, profile_url: 'https://tiktok.com', follower_count: 365000, created_at: '', updated_at: '' },
-      { id: '5', kol_id: '3', platform: 'twitter' as Platform, profile_url: 'https://twitter.com', follower_count: 120000, created_at: '', updated_at: '' },
-    ],
-    total_followers: 485000,
-    total_cost: 6000,
-    total_impressions: 74500,
-    num_posts: 15,
-    average_cpm: 8.05,
-  },
-  {
-    id: '4',
-    user_id: 'demo',
-    name: 'Crypto with Leo',
-    email: 'leo@crypto.com',
-    status: 'paid' as KOLStatus,
-    kyc_completed: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    platforms: [
-      { id: '6', kol_id: '4', platform: 'youtube' as Platform, profile_url: 'https://youtube.com', follower_count: 180000, created_at: '', updated_at: '' },
-    ],
-    total_followers: 180000,
-    total_cost: 0,
-    total_impressions: 31078,
-    num_posts: 7,
-    average_cpm: 0,
-  },
-  {
-    id: '5',
-    user_id: 'demo',
-    name: 'Jolly Green Investor',
-    email: 'jolly@investor.com',
-    status: 'paid' as KOLStatus,
-    kyc_completed: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    platforms: [
-      { id: '8', kol_id: '5', platform: 'tiktok' as Platform, profile_url: 'https://tiktok.com', follower_count: 439000, created_at: '', updated_at: '' },
-      { id: '9', kol_id: '5', platform: 'instagram' as Platform, profile_url: 'https://instagram.com', follower_count: 89000, created_at: '', updated_at: '' },
-    ],
-    total_followers: 528000,
-    total_cost: 12000,
-    total_impressions: 46759,
-    num_posts: 4,
-    average_cpm: 25.66,
-  },
-  {
-    id: '6',
-    user_id: 'demo',
-    name: 'Bodoggos',
-    email: 'bodoggos@gmail.com',
-    status: 'paid' as KOLStatus,
-    kyc_completed: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    platforms: [
-      { id: '10', kol_id: '6', platform: 'tiktok' as Platform, profile_url: 'https://tiktok.com', follower_count: 520000, created_at: '', updated_at: '' },
-    ],
-    total_followers: 520000,
-    total_cost: 9999,
-    total_impressions: 145300,
-    num_posts: 3,
-    average_cpm: 6.88,
-  },
-  {
-    id: '7',
-    user_id: 'demo',
-    name: 'Wale.Moca',
-    email: 'wale@moca.com',
-    status: 'paid' as KOLStatus,
-    kyc_completed: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    platforms: [
-      { id: '11', kol_id: '7', platform: 'twitter' as Platform, profile_url: 'https://twitter.com', follower_count: 85000, created_at: '', updated_at: '' },
-    ],
-    total_followers: 85000,
-    total_cost: 2500,
-    total_impressions: 15200,
-    num_posts: 1,
-    average_cpm: 16.45,
-  },
-  {
-    id: '8',
-    user_id: 'demo',
-    name: 'When Shift Happens',
-    status: 'in_contact' as KOLStatus,
-    kyc_completed: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    platforms: [
-      { id: '12', kol_id: '8', platform: 'youtube' as Platform, profile_url: 'https://youtube.com', follower_count: 91000, created_at: '', updated_at: '' },
-    ],
-    total_followers: 91000,
-    total_cost: 0,
-    total_impressions: 0,
-    num_posts: 0,
-    average_cpm: 0,
-  },
-  {
-    id: '9',
-    user_id: 'demo',
-    name: 'Star Platinum',
-    email: 'star@platinum.com',
-    status: 'paid' as KOLStatus,
-    kyc_completed: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    platforms: [
-      { id: '13', kol_id: '9', platform: 'tiktok' as Platform, profile_url: 'https://tiktok.com', follower_count: 125000, created_at: '', updated_at: '' },
-    ],
-    total_followers: 125000,
-    total_cost: 2500,
-    total_impressions: 4300,
-    num_posts: 1,
-    average_cpm: 58.14,
-  },
-  {
-    id: '10',
-    user_id: 'demo',
-    name: 'Pix',
-    email: 'pix@creator.com',
-    status: 'paid' as KOLStatus,
-    kyc_completed: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    platforms: [
-      { id: '14', kol_id: '10', platform: 'instagram' as Platform, profile_url: 'https://instagram.com', follower_count: 200000, created_at: '', updated_at: '' },
-    ],
-    total_followers: 200000,
-    total_cost: 2500,
-    total_impressions: 16400,
-    num_posts: 1,
-    average_cpm: 15.24,
-  },
-  {
-    id: '11',
-    user_id: 'demo',
-    name: 'Andrew Asks',
-    email: 'andrew@asks.com',
-    status: 'paid' as KOLStatus,
-    kyc_completed: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    platforms: [
-      { id: '15', kol_id: '11', platform: 'youtube' as Platform, profile_url: 'https://youtube.com', follower_count: 150000, created_at: '', updated_at: '' },
-    ],
-    total_followers: 150000,
-    total_cost: 2500,
-    total_impressions: 10000,
-    num_posts: 2,
-    average_cpm: 25.00,
-  },
-  {
-    id: '12',
-    user_id: 'demo',
-    name: 'Crypto Meg/Mason',
-    email: 'meg@crypto.com',
-    status: 'paid' as KOLStatus,
-    kyc_completed: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    platforms: [
-      { id: '16', kol_id: '12', platform: 'tiktok' as Platform, profile_url: 'https://tiktok.com', follower_count: 320000, created_at: '', updated_at: '' },
-      { id: '17', kol_id: '12', platform: 'youtube' as Platform, profile_url: 'https://youtube.com', follower_count: 95000, created_at: '', updated_at: '' },
-    ],
-    total_followers: 415000,
-    total_cost: 2000,
-    total_impressions: 25300,
-    num_posts: 2,
-    average_cpm: 7.91,
-  },
-];
 
 export default function RosterPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
-  const [kols] = useState(demoKOLs);
+  
+  // Use the KOLs hook for data management
+  const {
+    kols,
+    isLoading,
+    error,
+    isDemo,
+    addKOL,
+    updateKOL,
+    deleteKOL,
+    addPost,
+    updatePost,
+    deletePost,
+    addDocuments,
+    deleteDocument,
+  } = useKOLs();
+  
+  // Drawer state management
+  const [drawerMode, setDrawerMode] = useState<DrawerMode>(null);
+  const [selectedKOL, setSelectedKOL] = useState<KOLWithRelations | null>(null);
+  
+  // Post drawer state
+  const [postDrawerMode, setPostDrawerMode] = useState<PostDrawerMode>(null);
+  const [selectedPost, setSelectedPost] = useState<ContentPost | null>(null);
+
+  // ============================================
+  // DRAWER HANDLERS
+  // ============================================
+
+  const openAddDrawer = () => {
+    setSelectedKOL(null);
+    setDrawerMode('add');
+  };
+
+  const openViewDrawer = (kol: KOLWithRelations) => {
+    setSelectedKOL(kol);
+    setDrawerMode('view');
+  };
+
+  const openEditDrawer = (kol: KOLWithRelations) => {
+    setSelectedKOL(kol);
+    setDrawerMode('edit');
+  };
+
+  const closeDrawer = () => {
+    setDrawerMode(null);
+    setTimeout(() => setSelectedKOL(null), 300);
+  };
+
+  const handleViewToEdit = () => {
+    setDrawerMode('edit');
+  };
+
+  // ============================================
+  // KOL OPERATIONS
+  // ============================================
+
+  const handleFormSubmit = async (formData: KOLFormData) => {
+    if (drawerMode === 'add') {
+      await addKOL({
+        name: formData.name,
+        email: formData.email || undefined,
+        telegramHandle: formData.telegramHandle || undefined,
+        status: formData.status,
+        platforms: formData.platforms.map(p => ({
+          platform: p.platform,
+          profileUrl: p.profileUrl,
+          followerCount: p.followerCount,
+        })),
+        documents: formData.documents.map(d => ({
+          name: d.file.name,
+          type: d.type,
+          size: d.file.size,
+        })),
+      });
+    } else if (drawerMode === 'edit' && selectedKOL) {
+      await updateKOL(selectedKOL.id, {
+        name: formData.name,
+        email: formData.email || undefined,
+        telegramHandle: formData.telegramHandle || undefined,
+        status: formData.status,
+        platforms: formData.platforms.map(p => ({
+          platform: p.platform,
+          profileUrl: p.profileUrl,
+          followerCount: p.followerCount,
+        })),
+      });
+      
+      // Handle new documents
+      if (formData.documents.length > 0) {
+        await addDocuments(selectedKOL.id, formData.documents.map(d => ({
+          name: d.file.name,
+          type: d.type,
+          size: d.file.size,
+        })));
+      }
+    }
+  };
+
+  const handleDeleteKOL = async (kol: KOLWithRelations) => {
+    if (confirm(`Are you sure you want to delete ${kol.name}?`)) {
+      await deleteKOL(kol.id);
+    }
+  };
+
+  // ============================================
+  // POST HANDLERS
+  // ============================================
+
+  const openAddPostDrawer = () => {
+    setSelectedPost(null);
+    setPostDrawerMode('add');
+  };
+
+  const openEditPostDrawer = (post: ContentPost) => {
+    setSelectedPost(post);
+    setPostDrawerMode('edit');
+  };
+
+  const closePostDrawer = () => {
+    setPostDrawerMode(null);
+    setTimeout(() => setSelectedPost(null), 300);
+  };
+
+  const handlePostFormSubmit = async (formData: PostFormData) => {
+    if (!selectedKOL) return;
+
+    if (postDrawerMode === 'add') {
+      await addPost(selectedKOL.id, {
+        platform: formData.platform,
+        url: formData.url,
+        title: formData.title || undefined,
+        posted_date: formData.posted_date,
+        impressions: parseInt(formData.impressions) || 0,
+        engagement: parseInt(formData.engagement) || undefined,
+        clicks: parseInt(formData.clicks) || undefined,
+        cost: parseFloat(formData.cost) || undefined,
+        notes: formData.notes || undefined,
+      });
+
+      // Refresh selectedKOL to show new post
+      const updatedKOL = kols.find(k => k.id === selectedKOL.id);
+      if (updatedKOL) setSelectedKOL(updatedKOL);
+    } else if (postDrawerMode === 'edit' && selectedPost) {
+      await updatePost(selectedPost.id, {
+        platform: formData.platform,
+        url: formData.url,
+        title: formData.title || undefined,
+        posted_date: formData.posted_date,
+        impressions: parseInt(formData.impressions) || 0,
+        engagement: parseInt(formData.engagement) || undefined,
+        clicks: parseInt(formData.clicks) || undefined,
+        cost: parseFloat(formData.cost) || undefined,
+        notes: formData.notes || undefined,
+      });
+
+      // Refresh selectedKOL to show updated post
+      const updatedKOL = kols.find(k => k.id === selectedKOL.id);
+      if (updatedKOL) setSelectedKOL(updatedKOL);
+    }
+  };
+
+  const handleDeletePost = async (post: ContentPost) => {
+    if (!selectedKOL) return;
+    await deletePost(selectedKOL.id, post.id);
+    
+    // Refresh selectedKOL
+    const updatedKOL = kols.find(k => k.id === selectedKOL.id);
+    if (updatedKOL) setSelectedKOL(updatedKOL);
+  };
+
+  // ============================================
+  // DOCUMENT HANDLERS
+  // ============================================
+
+  const handleAddDocuments = async (docs: KOLDocument[]) => {
+    if (!selectedKOL) return;
+    await addDocuments(selectedKOL.id, docs.map(d => ({
+      name: d.name,
+      type: d.type,
+      size: d.size,
+      url: d.url,
+      file_path: d.file_path,
+    })));
+
+    // Refresh selectedKOL
+    const updatedKOL = kols.find(k => k.id === selectedKOL.id);
+    if (updatedKOL) setSelectedKOL(updatedKOL);
+  };
+
+  const handleDeleteDocument = async (doc: KOLDocument) => {
+    if (!selectedKOL) return;
+    await deleteDocument(selectedKOL.id, doc.id);
+
+    // Refresh selectedKOL
+    const updatedKOL = kols.find(k => k.id === selectedKOL.id);
+    if (updatedKOL) setSelectedKOL(updatedKOL);
+  };
+
+  // Keep selectedKOL in sync with kols array
+  const syncedSelectedKOL = selectedKOL 
+    ? kols.find(k => k.id === selectedKOL.id) || selectedKOL 
+    : null;
+
+  // ============================================
+  // COMPUTED VALUES
+  // ============================================
 
   const filteredKOLs = kols.filter(kol =>
     kol.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -257,11 +253,31 @@ export default function RosterPage() {
   const totalSpend = kols.reduce((sum, kol) => sum + kol.total_cost, 0);
   const totalImpressions = kols.reduce((sum, kol) => sum + kol.total_impressions, 0);
   const totalPosts = kols.reduce((sum, kol) => sum + kol.num_posts, 0);
-  // CPM = (Total Cost / Total Impressions) * 1000
-  const avgCPM = totalImpressions > 0 ? (totalSpend / totalImpressions) * 1000 : 0;
+
+  // ============================================
+  // RENDER
+  // ============================================
 
   return (
     <div className="space-y-8">
+      {/* Demo Mode Banner */}
+      {isDemo && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl"
+        >
+          <AlertCircle className="h-5 w-5 text-amber-500" />
+          <div>
+            <p className="text-sm font-medium text-amber-500">Demo Mode</p>
+            <p className="text-xs text-amber-500/70">
+              Supabase not configured. Data won&apos;t persist after refresh.{' '}
+              <a href="#setup" className="underline hover:no-underline">Set up Supabase →</a>
+            </p>
+          </div>
+        </motion.div>
+      )}
+
       {/* Header */}
       <ScrollReveal>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -278,7 +294,13 @@ export default function RosterPage() {
             <Button variant="secondary" size="sm" leftIcon={<Download className="h-4 w-4" />}>
               Export
             </Button>
-            <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} glow>
+            <Button 
+              variant="primary" 
+              size="sm" 
+              leftIcon={<Plus className="h-4 w-4" />} 
+              onClick={openAddDrawer}
+              glow
+            >
               Add KOL
             </Button>
           </div>
@@ -366,52 +388,73 @@ export default function RosterPage() {
         </div>
       </ScrollReveal>
 
+      {/* Loading state */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="h-8 w-8 text-indigo-500 animate-spin" />
+        </div>
+      )}
+
+      {/* Error state */}
+      {error && !isDemo && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-xl"
+        >
+          <AlertCircle className="h-5 w-5 text-red-500" />
+          <p className="text-sm text-red-400">{error.message}</p>
+        </motion.div>
+      )}
+
       {/* KOL Grid/List */}
-      <AnimatePresence mode="wait">
-        {viewMode === 'grid' ? (
-          <motion.div
-            key="grid"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
-            <StaggerContainer>
-              {filteredKOLs.map((kol) => (
-                <StaggerItem key={kol.id}>
-                  <KOLCard
-                    kol={kol}
-                    onEdit={(k) => console.log('Edit', k)}
-                    onDelete={(k) => console.log('Delete', k)}
-                    onView={(k) => console.log('View', k)}
-                  />
-                </StaggerItem>
+      {!isLoading && (
+        <AnimatePresence mode="wait">
+          {viewMode === 'grid' ? (
+            <motion.div
+              key="grid"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              <StaggerContainer>
+                {filteredKOLs.map((kol) => (
+                  <StaggerItem key={kol.id}>
+                    <KOLCard
+                      kol={kol}
+                      onEdit={() => openEditDrawer(kol)}
+                      onDelete={() => handleDeleteKOL(kol)}
+                      onView={() => openViewDrawer(kol)}
+                    />
+                  </StaggerItem>
+                ))}
+              </StaggerContainer>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="list"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="space-y-3"
+            >
+              {filteredKOLs.map((kol, index) => (
+                <KOLListItem
+                  key={kol.id}
+                  kol={kol}
+                  index={index}
+                  onEdit={() => openEditDrawer(kol)}
+                  onView={() => openViewDrawer(kol)}
+                />
               ))}
-            </StaggerContainer>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="list"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="space-y-3"
-          >
-            {filteredKOLs.map((kol, index) => (
-              <KOLListItem
-                key={kol.id}
-                kol={kol}
-                index={index}
-                onEdit={(k) => console.log('Edit', k)}
-                onView={(k) => console.log('View', k)}
-              />
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
 
       {/* Empty state */}
-      {filteredKOLs.length === 0 && (
+      {!isLoading && filteredKOLs.length === 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -424,11 +467,49 @@ export default function RosterPage() {
           <p className="text-zinc-400 mb-4">
             {searchQuery ? 'Try adjusting your search' : 'Get started by adding your first KOL'}
           </p>
-          <Button variant="primary" leftIcon={<Plus className="h-4 w-4" />}>
+          <Button 
+            variant="primary" 
+            leftIcon={<Plus className="h-4 w-4" />}
+            onClick={openAddDrawer}
+          >
             Add KOL
           </Button>
         </motion.div>
       )}
+
+      {/* Form Drawer (Add/Edit) */}
+      <KOLFormDrawer
+        key={syncedSelectedKOL?.id || 'new'}
+        isOpen={drawerMode === 'add' || drawerMode === 'edit'}
+        onClose={closeDrawer}
+        onSubmit={handleFormSubmit}
+        mode={drawerMode === 'edit' ? 'edit' : 'add'}
+        initialData={syncedSelectedKOL || undefined}
+      />
+
+      {/* Detail Drawer (View) */}
+      <KOLDetailDrawer
+        isOpen={drawerMode === 'view'}
+        onClose={closeDrawer}
+        onEdit={handleViewToEdit}
+        onAddPost={openAddPostDrawer}
+        onEditPost={openEditPostDrawer}
+        onDeletePost={handleDeletePost}
+        onAddDocuments={handleAddDocuments}
+        onDeleteDocument={handleDeleteDocument}
+        kol={syncedSelectedKOL}
+      />
+
+      {/* Add/Edit Post Drawer */}
+      <AddPostDrawer
+        key={selectedPost?.id || 'new-post'}
+        isOpen={postDrawerMode !== null}
+        onClose={closePostDrawer}
+        onSubmit={handlePostFormSubmit}
+        kolName={syncedSelectedKOL?.name || ''}
+        mode={postDrawerMode === 'edit' ? 'edit' : 'add'}
+        initialData={selectedPost || undefined}
+      />
     </div>
   );
 }

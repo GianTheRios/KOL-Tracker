@@ -3,17 +3,19 @@
 // ============================================
 
 // Platform types
-export type Platform = 'youtube' | 'tiktok' | 'twitter' | 'instagram' | 'telegram';
+export type Platform = 'youtube' | 'tiktok' | 'twitter' | 'instagram' | 'telegram' | 'twitch' | 'linkedin' | 'other';
 
 // Status types
 export type KOLStatus = 
   | 'reached' 
   | 'in_contact' 
+  | 'negotiating'
   | 'kyc' 
   | 'contracted' 
   | 'invoiced' 
   | 'paid' 
-  | 'not_paid';
+  | 'not_paid'
+  | 'completed';
 
 export type InvoiceStatus = 'pending' | 'invoiced' | 'paid' | 'not_paid' | 'cancelled';
 
@@ -152,6 +154,59 @@ export interface ContentLink {
   notes?: string;
   created_at: string;
   updated_at: string;
+}
+
+// Content Post - for tracking individual KOL posts
+export interface ContentPost {
+  id: string;
+  kol_id: string;
+  platform: Platform;
+  url: string;
+  title?: string;
+  posted_date: string;
+  
+  // Metrics (can be updated over time)
+  impressions: number;
+  engagement?: number;
+  clicks?: number;
+  
+  // Cost tracking
+  cost?: number;
+  
+  // Proof/Screenshot
+  screenshot_url?: string;
+  
+  // Notes
+  notes?: string;
+  
+  // Tracking
+  created_at: string;
+  updated_at: string;
+}
+
+// Metric Snapshot - for tracking metric changes over time
+export interface MetricSnapshot {
+  id: string;
+  post_id: string;
+  recorded_at: string;
+  impressions: number;
+  engagement?: number;
+  clicks?: number;
+}
+
+// KOL Document - for tracking contracts, invoices, MSAs
+export type DocumentType = 'invoice' | 'msa' | 'contract' | 'other';
+
+export interface KOLDocument {
+  id: string;
+  kol_id: string;
+  name: string;
+  type: DocumentType;
+  size: number;
+  url?: string; // Signed URL for download
+  file_path?: string; // Path in Supabase storage
+  uploaded_at: string;
+  notes?: string;
 }
 
 // ============================================
