@@ -159,7 +159,7 @@ export class KOLService {
     // #endregion
 
     // Combine data
-    return kols.map(kol => {
+    const result = kols.map(kol => {
       const kolPlatforms = platforms.filter(p => p.kol_id === kol.id) as KOLPlatform[];
       const kolPosts = posts.filter(p => p.kol_id === kol.id) as ContentPost[];
       const kolDocs = documents.filter(d => d.kol_id === kol.id).map(d => ({
@@ -182,6 +182,23 @@ export class KOLService {
         ...metrics,
       } as KOLWithRelations;
     });
+
+    // #region debug log
+    console.log('[KOLService] First KOL with metrics:', {
+      name: result[0]?.name,
+      num_posts: result[0]?.num_posts,
+      total_impressions: result[0]?.total_impressions,
+      total_cost: result[0]?.total_cost,
+    });
+    const totals = result.reduce((acc, k) => ({
+      posts: acc.posts + k.num_posts,
+      impressions: acc.impressions + k.total_impressions,
+      cost: acc.cost + k.total_cost,
+    }), { posts: 0, impressions: 0, cost: 0 });
+    console.log('[KOLService] Aggregated totals:', totals);
+    // #endregion
+
+    return result;
   }
 
   /**
