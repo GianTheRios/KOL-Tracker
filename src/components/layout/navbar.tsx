@@ -57,10 +57,10 @@ export function Navbar() {
                 whileHover={{ scale: 1.05, rotate: 5 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <span className="text-white font-bold text-lg">K</span>
+                <span className="text-white font-bold text-lg">I</span>
               </motion.div>
               <span className="font-semibold text-lg tracking-tight hidden sm:block text-white">
-                KOL Tracker
+                Influencer Tracker
               </span>
             </Link>
 
@@ -238,10 +238,10 @@ export function Sidebar() {
               whileHover={{ scale: 1.05, rotate: 5 }}
               whileTap={{ scale: 0.95 }}
             >
-              <span className="text-white font-bold text-xl">K</span>
+              <span className="text-white font-bold text-xl">I</span>
             </motion.div>
             <div>
-              <span className="font-semibold text-lg tracking-tight block text-white">KOL Tracker</span>
+              <span className="font-semibold text-lg tracking-tight block text-white">Influencer Tracker</span>
               <span className="text-xs text-zinc-500">Pro Dashboard</span>
             </div>
           </Link>

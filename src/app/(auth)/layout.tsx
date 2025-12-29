@@ -79,9 +79,9 @@ export default function AuthLayout({
               className="h-12 w-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center"
               whileHover={{ scale: 1.05, rotate: 5 }}
             >
-              <span className="font-bold text-2xl">K</span>
+              <span className="font-bold text-2xl">I</span>
             </motion.div>
-            <span className="font-semibold text-xl tracking-tight">KOL Tracker</span>
+            <span className="font-semibold text-xl tracking-tight">Influencer Tracker</span>
           </Link>
 
           {/* Main content */}
@@ -95,7 +95,7 @@ export default function AuthLayout({
               Scale your influencer strategy with precision
             </h1>
             <p className="text-lg text-white/80 leading-relaxed">
-              Track KOLs, monitor performance, manage budgets, and make data-driven 
+              Track influencers, monitor performance, manage budgets, and make data-driven 
               decisions to maximize your marketing ROI.
             </p>
 
@@ -141,7 +141,7 @@ export default function AuthLayout({
               <div className="h-12 w-px bg-white/20" />
               <div>
                 <div className="text-3xl font-bold">∞</div>
-                <div className="text-sm text-white/70">KOLs tracked</div>
+                <div className="text-sm text-white/70">Influencers tracked</div>
               </div>
             </div>
           </motion.div>

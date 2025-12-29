@@ -418,7 +418,7 @@ export function KOLDetailDrawer({
             leftIcon={<Edit className="h-4 w-4" />}
             glow
           >
-            Edit KOL
+            Edit Influencer
           </Button>
         </>
       }

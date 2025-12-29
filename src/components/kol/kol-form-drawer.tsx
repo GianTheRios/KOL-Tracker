@@ -188,10 +188,10 @@ export function KOLFormDrawer({
     <Drawer
       isOpen={isOpen}
       onClose={handleClose}
-      title={isEditMode ? 'Edit KOL' : 'Add New KOL'}
+      title={isEditMode ? 'Edit Influencer' : 'Add New Influencer'}
       description={isEditMode 
-        ? `Update ${initialData?.name || 'KOL'} profile` 
-        : 'Add a Key Opinion Leader to your roster'
+        ? `Update ${initialData?.name || 'influencer'} profile` 
+        : 'Add an influencer to your roster'
       }
       width="lg"
       footer={
@@ -205,7 +205,7 @@ export function KOLFormDrawer({
             loading={isSubmitting}
             glow
           >
-            {isEditMode ? 'Save Changes' : 'Add KOL'}
+            {isEditMode ? 'Save Changes' : 'Add Influencer'}
           </Button>
         </>
       }
@@ -216,7 +216,7 @@ export function KOLFormDrawer({
           <div className="grid grid-cols-1 gap-4">
             <Input
               label="Name"
-              placeholder="Enter KOL name"
+              placeholder="Enter influencer name"
               value={formData.name}
               onChange={(e) => updateField('name', e.target.value)}
               error={errors.name}

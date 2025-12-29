@@ -18,7 +18,7 @@ import {
 const features = [
   {
     icon: Users,
-    title: 'KOL Roster Management',
+    title: 'Influencer Roster Management',
     description: 'Track all your influencer partnerships in one place with detailed profiles and platform analytics.',
     iconBg: 'bg-violet-500',
   },
@@ -52,7 +52,7 @@ const benefits = [
 ];
 
 const stats = [
-  { value: '16+', label: 'KOLs Tracked', icon: Users },
+  { value: '16+', label: 'Influencers Tracked', icon: Users },
   { value: '$7.86', label: 'Avg CPM', icon: TrendingUp },
   { value: '2.4M', label: 'Impressions', icon: Zap },
 ];
@@ -113,7 +113,7 @@ export default function HomePage() {
           >
             <span className="text-white">Scale your </span>
             <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent">
-              KOL strategy
+              influencer strategy
             </span>
             <br />
             <span className="text-white">with precision</span>
@@ -210,7 +210,7 @@ export default function HomePage() {
               Features
             </span>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Everything you need to manage KOLs
+              Everything you need to manage influencers
             </h2>
             <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
               Stop using spreadsheets. Get a purpose-built tool for tracking and scaling 
@@ -254,7 +254,7 @@ export default function HomePage() {
             {/* Content */}
             <div className="relative z-10 py-20 px-8 text-center">
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-                Ready to scale your KOL strategy?
+                Ready to scale your influencer strategy?
               </h2>
               <p className="text-lg text-white/80 mb-10 max-w-xl mx-auto">
                 Join teams who&apos;ve already upgraded from spreadsheets to a purpose-built solution.
@@ -276,12 +276,12 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center text-white font-bold shadow-lg">
-                K
+                I
               </div>
-              <span className="font-semibold text-white">KOL Tracker</span>
+              <span className="font-semibold text-white">Influencer Tracker</span>
             </div>
             <p className="text-sm text-zinc-500">
-              © 2025 KOL Tracker. Built with ❤️ for marketers.
+              © 2025 Influencer Tracker. Built with ❤️ for marketers.
             </p>
           </div>
         </div>

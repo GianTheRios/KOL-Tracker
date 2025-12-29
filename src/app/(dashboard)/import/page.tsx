@@ -76,7 +76,7 @@ export default function ImportPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Import Data</h1>
             <p className="text-zinc-400 mt-1">
-              Import KOL data from Excel or CSV files
+              Import influencer data from Excel or CSV files
             </p>
           </div>
           <Button variant="secondary" size="sm" leftIcon={<Download className="h-4 w-4" />}>
@@ -277,7 +277,7 @@ export default function ImportPage() {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="font-semibold text-lg">Preview Import</h3>
-                  <p className="text-sm text-zinc-500">16 KOLs will be imported</p>
+                  <p className="text-sm text-zinc-500">16 influencers will be imported</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="flex items-center gap-1.5 text-sm text-emerald-500">
@@ -346,7 +346,7 @@ export default function ImportPage() {
                   leftIcon={<Upload className="h-4 w-4" />}
                   glow
                 >
-                  Import 16 KOLs
+                  Import 16 Influencers
                 </Button>
               </div>
             </AnimatedCard>
@@ -384,7 +384,7 @@ export default function ImportPage() {
               transition={{ delay: 0.4 }}
               className="text-zinc-500 mb-8"
             >
-              Successfully imported 16 KOLs to your roster
+              Successfully imported 16 influencers to your roster
             </motion.p>
 
             <motion.div

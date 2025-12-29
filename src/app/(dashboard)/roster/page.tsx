@@ -282,9 +282,9 @@ export default function RosterPage() {
       <ScrollReveal>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">KOL Roster</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-white">Influencer Roster</h1>
             <p className="text-zinc-400 mt-1">
-              Manage and track your Key Opinion Leaders
+              Manage and track your influencer partnerships
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -301,7 +301,7 @@ export default function RosterPage() {
               onClick={openAddDrawer}
               glow
             >
-              Add KOL
+              Add Influencer
             </Button>
           </div>
         </div>
@@ -311,7 +311,7 @@ export default function RosterPage() {
       <ScrollReveal delay={0.1}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: 'Total KOLs', value: kols.length, icon: Users, color: 'text-indigo-400' },
+            { label: 'Total Influencers', value: kols.length, icon: Users, color: 'text-indigo-400' },
             { label: 'Total Spend', value: totalSpend, icon: DollarSign, color: 'text-emerald-500', format: 'currency' },
             { label: 'Total Impressions', value: totalImpressions, icon: Eye, color: 'text-blue-500', format: 'compact' },
             { label: 'Total Posts', value: totalPosts, icon: TrendingUp, color: 'text-amber-500' },
@@ -353,7 +353,7 @@ export default function RosterPage() {
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <div className="w-full sm:w-80">
               <SearchInput
-                placeholder="Search KOLs..."
+                placeholder="Search influencers..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onClear={() => setSearchQuery('')}
@@ -463,16 +463,16 @@ export default function RosterPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zinc-800 mb-4">
             <Users className="h-8 w-8 text-zinc-500" />
           </div>
-          <h3 className="text-lg font-semibold mb-2 text-white">No KOLs found</h3>
+          <h3 className="text-lg font-semibold mb-2 text-white">No influencers found</h3>
           <p className="text-zinc-400 mb-4">
-            {searchQuery ? 'Try adjusting your search' : 'Get started by adding your first KOL'}
+            {searchQuery ? 'Try adjusting your search' : 'Get started by adding your first influencer'}
           </p>
           <Button 
             variant="primary" 
             leftIcon={<Plus className="h-4 w-4" />}
             onClick={openAddDrawer}
           >
-            Add KOL
+            Add Influencer
           </Button>
         </motion.div>
       )}

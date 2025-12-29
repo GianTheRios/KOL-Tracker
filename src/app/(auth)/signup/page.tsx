@@ -70,7 +70,7 @@ export default function SignupPage() {
   };
 
   const features = [
-    'Unlimited KOL tracking',
+    'Unlimited influencer tracking',
     'Advanced analytics dashboard',
     'CPM & ROI calculations',
     'Excel import & export',
@@ -89,9 +89,9 @@ export default function SignupPage() {
             className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/25"
             whileHover={{ scale: 1.05, rotate: 5 }}
           >
-            <span className="text-white font-bold text-lg">K</span>
+            <span className="text-white font-bold text-lg">I</span>
           </motion.div>
-          <span className="font-semibold text-lg tracking-tight text-white">KOL Tracker</span>
+          <span className="font-semibold text-lg tracking-tight text-white">Influencer Tracker</span>
         </Link>
       </div>
 
@@ -110,7 +110,7 @@ export default function SignupPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
         >
-          Start tracking your KOL strategy today
+          Start tracking your influencer strategy today
         </motion.p>
       </div>
 

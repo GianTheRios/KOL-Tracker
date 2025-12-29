@@ -9,9 +9,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "KOL Tracker | Scale Your Influencer Strategy",
-  description: "Track, monitor, and scale your KOL (Key Opinion Leader) strategy with advanced analytics, budget management, and performance insights.",
-  keywords: ["KOL", "influencer", "marketing", "analytics", "tracker", "strategy"],
+  title: "Influencer Tracker | Scale Your Influencer Strategy",
+  description: "Track, monitor, and scale your influencer marketing strategy with advanced analytics, budget management, and performance insights.",
+  keywords: ["influencer", "marketing", "analytics", "tracker", "strategy", "KOL"],
 };
 
 export default function RootLayout({

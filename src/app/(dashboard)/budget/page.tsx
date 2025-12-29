@@ -67,7 +67,7 @@ export default function BudgetPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Budget & Invoices</h1>
             <p className="text-zinc-400 mt-1">
-              Track spending and manage KOL payments
+              Track spending and manage influencer payments
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -150,7 +150,7 @@ export default function BudgetPage() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>KOL</th>
+                  <th>Influencer</th>
                   <th>Amount</th>
                   <th>Period</th>
                   <th>Status</th>

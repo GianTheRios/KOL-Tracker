@@ -109,12 +109,12 @@ export default function AnalyticsPage() {
 
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* CPM by KOL */}
+        {/* CPM by Influencer */}
         <ScrollReveal delay={0.1}>
           <AnimatedCard variant="glass" hover={false} className="p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="font-semibold text-lg">CPM by KOL</h3>
+                <h3 className="font-semibold text-lg">CPM by Influencer</h3>
                 <p className="text-sm text-zinc-500">Cost per thousand impressions</p>
               </div>
               <BarChart3 className="h-5 w-5 text-zinc-500" />
@@ -250,7 +250,7 @@ export default function AnalyticsPage() {
             delay={0.1}
           />
           <ProgressMetric
-            label="KOLs with Activity"
+            label="Influencers with Activity"
             value={10}
             max={12}
             format="number"
@@ -265,13 +265,13 @@ export default function AnalyticsPage() {
         <AnimatedCard variant="glass" hover={false} className="overflow-hidden">
           <div className="p-6 border-b border-zinc-800">
             <h3 className="font-semibold text-lg">Top Performers by ROI</h3>
-            <p className="text-sm text-zinc-500">Best performing KOLs this month</p>
+            <p className="text-sm text-zinc-500">Best performing influencers this month</p>
           </div>
           <div className="overflow-x-auto">
             <table className="table">
               <thead>
                 <tr>
-                  <th>KOL</th>
+                  <th>Influencer</th>
                   <th>Platform</th>
                   <th>Impressions</th>
                   <th>Cost</th>

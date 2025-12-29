@@ -76,9 +76,9 @@ export default function LoginPage() {
             className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/25"
             whileHover={{ scale: 1.05, rotate: 5 }}
           >
-            <span className="text-white font-bold text-lg">K</span>
+            <span className="text-white font-bold text-lg">I</span>
           </motion.div>
-          <span className="font-semibold text-lg tracking-tight text-white">KOL Tracker</span>
+          <span className="font-semibold text-lg tracking-tight text-white">Influencer Tracker</span>
         </Link>
       </div>
 
