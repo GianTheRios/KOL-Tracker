@@ -147,6 +147,17 @@ export class KOLService {
     const posts = postsRes.data || [];
     const documents = documentsRes.data || [];
 
+    // #region debug log
+    console.log('[KOLService] Related data:', {
+      platforms: platforms.length,
+      posts: posts.length,
+      documents: documents.length,
+    });
+    if (posts.length > 0) {
+      console.log('[KOLService] Sample post:', posts[0]);
+    }
+    // #endregion
+
     // Combine data
     return kols.map(kol => {
       const kolPlatforms = platforms.filter(p => p.kol_id === kol.id) as KOLPlatform[];
