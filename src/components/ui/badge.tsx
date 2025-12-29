@@ -80,6 +80,9 @@ const platformConfig: Record<Platform, { bg: string; icon: string; label: string
   twitter: { bg: 'bg-sky-500', icon: '𝕏', label: 'Twitter' },
   instagram: { bg: 'bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400', icon: '📷', label: 'Instagram' },
   telegram: { bg: 'bg-blue-500', icon: '✈', label: 'Telegram' },
+  twitch: { bg: 'bg-purple-600', icon: '🎮', label: 'Twitch' },
+  linkedin: { bg: 'bg-blue-700', icon: '💼', label: 'LinkedIn' },
+  other: { bg: 'bg-zinc-600', icon: '🔗', label: 'Other' },
 };
 
 export function PlatformBadge({
@@ -124,11 +127,13 @@ interface StatusBadgeProps {
 const statusConfig: Record<KOLStatus, { variant: BadgeProps['variant']; label: string; dot?: boolean }> = {
   reached: { variant: 'warning', label: 'Reached Out', dot: true },
   in_contact: { variant: 'info', label: 'In Contact', dot: true },
+  negotiating: { variant: 'warning', label: 'Negotiating', dot: true },
   kyc: { variant: 'primary', label: 'KYC', dot: true },
   contracted: { variant: 'info', label: 'Contracted', dot: true },
   invoiced: { variant: 'primary', label: 'Invoiced', dot: false },
   paid: { variant: 'success', label: 'Paid', dot: false },
   not_paid: { variant: 'error', label: 'Not Paid', dot: true },
+  completed: { variant: 'success', label: 'Completed', dot: false },
 };
 
 export function StatusBadge({

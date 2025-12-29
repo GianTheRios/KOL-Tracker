@@ -336,8 +336,6 @@ function PerformanceTab({ posts }: { posts: ContentPost[] }) {
               data={weeklyData}
               height={160}
               color="#818cf8"
-              showGrid
-              showLabels
             />
           ) : (
             <div className="flex items-center justify-center h-full text-zinc-500 text-sm">

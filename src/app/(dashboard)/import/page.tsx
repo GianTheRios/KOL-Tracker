@@ -167,9 +167,9 @@ export default function ImportPage() {
                     onChange={handleFileSelect}
                     className="hidden"
                   />
-                  <Button variant="primary" className="cursor-pointer" as="span">
+                  <span className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-medium cursor-pointer hover:from-violet-500 hover:to-indigo-500 transition-all duration-200">
                     Choose File
-                  </Button>
+                  </span>
                 </label>
               </motion.div>
 
