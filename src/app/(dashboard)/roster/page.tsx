@@ -254,16 +254,6 @@ export default function RosterPage() {
   const totalImpressions = kols.reduce((sum, kol) => sum + kol.total_impressions, 0);
   const totalPosts = kols.reduce((sum, kol) => sum + kol.num_posts, 0);
 
-  // #region debug log
-  console.log('[RosterPage] Stats calculation:', {
-    kolsLength: kols.length,
-    totalSpend,
-    totalImpressions,
-    totalPosts,
-    firstKOL: kols[0] ? { name: kols[0].name, total_cost: kols[0].total_cost, total_impressions: kols[0].total_impressions } : null,
-  });
-  // #endregion
-
   // ============================================
   // RENDER
   // ============================================

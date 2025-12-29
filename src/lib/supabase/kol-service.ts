@@ -102,17 +102,9 @@ export class KOLService {
    */
   async fetchAllKOLs(): Promise<KOLWithRelations[]> {
     if (!this.supabase) {
-      console.warn('[KOLService] Supabase not configured, returning empty array');
+      console.warn('Supabase not configured, returning empty array');
       return [];
     }
-
-    // #region debug log
-    console.log('[KOLService] Fetching KOLs from Supabase...');
-    // Check auth status
-    const { data: { user }, error: authErr } = await this.supabase.auth.getUser();
-    console.log('[KOLService] Current user:', user?.id || 'NOT AUTHENTICATED');
-    if (authErr) console.log('[KOLService] Auth error:', authErr);
-    // #endregion
 
     // Fetch KOLs
     const { data: kols, error: kolError } = await this.supabase
@@ -120,17 +112,12 @@ export class KOLService {
       .select('*')
       .order('created_at', { ascending: false });
 
-    // #region debug log
-    console.log('[KOLService] KOLs query result:', { count: kols?.length, error: kolError });
-    // #endregion
-
     if (kolError) {
-      console.error('[KOLService] Error fetching KOLs:', kolError);
+      console.error('Error fetching KOLs:', kolError);
       throw kolError;
     }
 
     if (!kols || kols.length === 0) {
-      console.log('[KOLService] No KOLs found in database');
       return [];
     }
 
@@ -146,17 +133,6 @@ export class KOLService {
     const platforms = platformsRes.data || [];
     const posts = postsRes.data || [];
     const documents = documentsRes.data || [];
-
-    // #region debug log
-    console.log('[KOLService] Related data:', {
-      platforms: platforms.length,
-      posts: posts.length,
-      documents: documents.length,
-    });
-    if (posts.length > 0) {
-      console.log('[KOLService] Sample post:', posts[0]);
-    }
-    // #endregion
 
     // Combine data
     const result = kols.map(kol => {
@@ -182,21 +158,6 @@ export class KOLService {
         ...metrics,
       } as KOLWithRelations;
     });
-
-    // #region debug log
-    console.log('[KOLService] First KOL with metrics:', {
-      name: result[0]?.name,
-      num_posts: result[0]?.num_posts,
-      total_impressions: result[0]?.total_impressions,
-      total_cost: result[0]?.total_cost,
-    });
-    const totals = result.reduce((acc, k) => ({
-      posts: acc.posts + k.num_posts,
-      impressions: acc.impressions + k.total_impressions,
-      cost: acc.cost + k.total_cost,
-    }), { posts: 0, impressions: 0, cost: 0 });
-    console.log('[KOLService] Aggregated totals:', totals);
-    // #endregion
 
     return result;
   }
