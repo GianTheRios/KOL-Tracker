@@ -186,7 +186,7 @@ export default function AnalyticsPage() {
         </div>
       </ScrollReveal>
 
-      {/* Key metrics - Same metrics as Roster page for consistency */}
+      {/* Key metrics - Same 4 metrics as Roster page for consistency */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           label="Total Influencers"
@@ -220,20 +220,6 @@ export default function AnalyticsPage() {
           format="number"
           icon={<TrendingUp className="h-5 w-5" />}
           delay={0.3}
-        />
-      </div>
-
-      {/* Additional Analytics Metric - Average CPM */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <MetricCard
-          label="Average CPM"
-          value={avgCpm}
-          previousValue={avgCpm * 1.18}
-          format="number"
-          prefix="$"
-          icon={<DollarSign className="h-5 w-5" />}
-          trend="up"
-          delay={0.4}
         />
       </div>
 
