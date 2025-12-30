@@ -134,6 +134,11 @@ export class KOLService {
     const posts = postsRes.data || [];
     const documents = documentsRes.data || [];
 
+    // Debug: log what we fetched
+    console.log('[KOL-SERVICE] fetchAllKOLs: Fetched', posts.length, 'total posts from DB');
+    console.log('[KOL-SERVICE] fetchAllKOLs: KOL IDs:', kolIds);
+    console.log('[KOL-SERVICE] fetchAllKOLs: Post kol_ids:', posts.map(p => p.kol_id));
+
     // Combine data
     const result = kols.map(kol => {
       const kolPlatforms = platforms.filter(p => p.kol_id === kol.id) as KOLPlatform[];
@@ -147,6 +152,11 @@ export class KOLService {
       })) as KOLDocument[];
 
       const metrics = calculateMetrics(kolPosts);
+      
+      // Debug: log posts per KOL
+      if (kolPosts.length > 0) {
+        console.log(`[KOL-SERVICE] fetchAllKOLs: KOL "${kol.name}" has ${kolPosts.length} posts, total_cost: ${metrics.total_cost}`);
+      }
 
       return {
         ...kol,

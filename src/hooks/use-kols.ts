@@ -221,27 +221,50 @@ export function useKOLs(): UseKOLsReturn {
     
     try {
       const updatedPost = await service.updatePost(postId, post);
-      console.log('[USE-KOLS] updatePost: SUCCESS - Updated post:', updatedPost.id);
+      console.log('[USE-KOLS] updatePost: SUCCESS - Updated post:', updatedPost.id, 'kol_id:', updatedPost.kol_id);
       
-      // Update local state
-      setKols(prev => prev.map(kol => {
-        const postIndex = kol.posts.findIndex(p => p.id === postId);
-        if (postIndex === -1) return kol;
+      // Update local state - find the KOL that owns this post
+      setKols(prev => {
+        // Debug: log all KOLs and their post counts
+        console.log('[USE-KOLS] updatePost: Searching for post in local state...');
+        prev.forEach(kol => {
+          const hasPost = kol.posts.some(p => p.id === postId);
+          console.log(`[USE-KOLS] KOL "${kol.name}" (${kol.id}): ${kol.posts.length} posts, hasPost: ${hasPost}`);
+        });
         
-        const posts = [...kol.posts];
-        posts[postIndex] = updatedPost;
+        let foundPost = false;
+        const updated = prev.map(kol => {
+          const postIndex = kol.posts.findIndex(p => p.id === postId);
+          if (postIndex === -1) return kol;
+          
+          foundPost = true;
+          console.log('[USE-KOLS] updatePost: Found post in KOL:', kol.name, 'at index:', postIndex);
+          
+          const posts = [...kol.posts];
+          posts[postIndex] = updatedPost;
+          
+          const total_impressions = posts.reduce((sum, p) => sum + (p.impressions || 0), 0);
+          const total_cost = posts.reduce((sum, p) => sum + (p.cost || 0), 0);
+          
+          console.log('[USE-KOLS] updatePost: New totals - impressions:', total_impressions, 'cost:', total_cost);
+          
+          return {
+            ...kol,
+            posts,
+            total_impressions,
+            total_cost,
+            average_cpm: total_impressions > 0 ? (total_cost / total_impressions) * 1000 : 0,
+          };
+        });
         
-        const total_impressions = posts.reduce((sum, p) => sum + (p.impressions || 0), 0);
-        const total_cost = posts.reduce((sum, p) => sum + (p.cost || 0), 0);
+        if (!foundPost) {
+          console.error('[USE-KOLS] updatePost: POST NOT FOUND IN ANY KOL! postId:', postId);
+          console.error('[USE-KOLS] updatePost: The post exists in DB but not in local state. Triggering refetch...');
+        }
         
-        return {
-          ...kol,
-          posts,
-          total_impressions,
-          total_cost,
-          average_cpm: total_impressions > 0 ? (total_cost / total_impressions) * 1000 : 0,
-        };
-      }));
+        return updated;
+      });
+      
     } catch (err) {
       console.error('[USE-KOLS] updatePost: FAILED -', err);
       throw err;
