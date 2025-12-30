@@ -413,9 +413,7 @@ export class KOLService {
       throw new Error('Supabase not configured');
     }
 
-    // #region agent log
-    console.log('[KOL-SERVICE] updatePost - id:', id, 'input.cost:', input.cost, 'type:', typeof input.cost);
-    // #endregion
+    console.log('[SERVICE v3] updatePost - input cost:', input.cost, typeof input.cost);
 
     const { data, error } = await this.supabase
       .from('content_posts')
@@ -425,13 +423,11 @@ export class KOLService {
       .single();
 
     if (error || !data) {
-      console.error('[KOL-SERVICE] ERROR updating post:', error?.message);
+      console.error('[SERVICE v3] ERROR:', error?.message);
       throw error;
     }
 
-    // #region agent log
-    console.log('[KOL-SERVICE] SUCCESS - sent cost:', input.cost, '→ returned cost:', data.cost);
-    // #endregion
+    console.log('[SERVICE v3] sent:', input.cost, '→ got:', data.cost);
     return data as ContentPost;
   }
 

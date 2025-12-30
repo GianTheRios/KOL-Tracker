@@ -217,55 +217,37 @@ export function useKOLs(): UseKOLsReturn {
   }, [service]);
 
   const updatePost = useCallback(async (postId: string, post: Partial<ContentPost>) => {
-    // #region agent log
-    console.log('[USE-KOLS] updatePost called - postId:', postId, 'input cost:', post.cost);
-    // #endregion
+    console.log('[HOOK v3] updatePost - cost:', post.cost);
     
     try {
       const updatedPost = await service.updatePost(postId, post);
+      console.log('[HOOK v3] returned cost:', updatedPost.cost);
       
-      // #region agent log
-      console.log('[USE-KOLS] updatePost SUCCESS - returned cost:', updatedPost.cost);
-      // #endregion
-      
-      // Update local state - find the KOL that owns this post
-      setKols(prev => {
-        let foundPost = false;
-        const updated = prev.map(kol => {
-          const postIndex = kol.posts.findIndex(p => p.id === postId);
-          if (postIndex === -1) return kol;
-          
-          foundPost = true;
-          const oldCost = kol.posts[postIndex].cost || 0;
-          
-          // #region agent log
-          console.log('[USE-KOLS] State update - OLD cost:', oldCost, '→ NEW cost:', updatedPost.cost);
-          // #endregion
-          
-          const posts = [...kol.posts];
-          posts[postIndex] = updatedPost;
-          
-          const total_impressions = posts.reduce((sum, p) => sum + (p.impressions || 0), 0);
-          const total_cost = posts.reduce((sum, p) => sum + (p.cost || 0), 0);
-          
-          return {
-            ...kol,
-            posts,
-            total_impressions,
-            total_cost,
-            average_cpm: total_impressions > 0 ? (total_cost / total_impressions) * 1000 : 0,
-          };
-        });
+      // Update local state
+      setKols(prev => prev.map(kol => {
+        const postIndex = kol.posts.findIndex(p => p.id === postId);
+        if (postIndex === -1) return kol;
         
-        if (!foundPost) {
-          console.error('[USE-KOLS] POST NOT FOUND in local state:', postId);
-        }
+        const oldCost = kol.posts[postIndex].cost || 0;
+        console.log('[HOOK v3] state:', oldCost, '→', updatedPost.cost);
         
-        return updated;
-      });
+        const posts = [...kol.posts];
+        posts[postIndex] = updatedPost;
+        
+        const total_impressions = posts.reduce((sum, p) => sum + (p.impressions || 0), 0);
+        const total_cost = posts.reduce((sum, p) => sum + (p.cost || 0), 0);
+        
+        return {
+          ...kol,
+          posts,
+          total_impressions,
+          total_cost,
+          average_cpm: total_impressions > 0 ? (total_cost / total_impressions) * 1000 : 0,
+        };
+      }));
       
     } catch (err) {
-      console.error('[USE-KOLS] updatePost FAILED:', err);
+      console.error('[HOOK v3] FAILED:', err);
       throw err;
     }
   }, [service]);
