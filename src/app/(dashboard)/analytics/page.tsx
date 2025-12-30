@@ -121,14 +121,6 @@ export default function AnalyticsPage() {
     };
   }, [kols]);
 
-  // #region agent log
-  // Debug instrumentation - Console logging for Vercel
-  if (typeof window !== 'undefined' && kols.length > 0) {
-    console.log('[ANALYTICS PAGE] Stats:', { totalInfluencers: kols.length, totalSpend, totalImpressions, totalPosts, avgCpm, isDemo, kolCount: kols.length });
-    console.log('[ANALYTICS PAGE] KOL Details:', kols.map(k => ({ name: k.name, cost: k.total_cost, impressions: k.total_impressions, posts: k.num_posts })));
-  }
-  // #endregion
-
   // Format helpers
   const formatCompact = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;

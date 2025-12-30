@@ -311,13 +311,6 @@ export function useKOLs(): UseKOLsReturn {
 
     try {
       if (!service.isAvailable()) {
-        // #region agent log
-        // Debug instrumentation - Console logging for Vercel
-        const demoTotalSpend = demoKOLs.reduce((sum, k) => sum + k.total_cost, 0);
-        const demoTotalImpressions = demoKOLs.reduce((sum, k) => sum + k.total_impressions, 0);
-        const demoTotalPosts = demoKOLs.reduce((sum, k) => sum + k.num_posts, 0);
-        console.log('[USE-KOLS HOOK] Loading demo data:', { count: demoKOLs.length, totalSpend: demoTotalSpend, totalImpressions: demoTotalImpressions, totalPosts: demoTotalPosts });
-        // #endregion
         setKols(demoKOLs);
         setIsDemo(true);
         return;

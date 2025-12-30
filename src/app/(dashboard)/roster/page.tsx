@@ -254,14 +254,6 @@ export default function RosterPage() {
   const totalImpressions = kols.reduce((sum, kol) => sum + kol.total_impressions, 0);
   const totalPosts = kols.reduce((sum, kol) => sum + kol.num_posts, 0);
 
-  // #region agent log
-  // Debug instrumentation - Console logging for Vercel
-  if (typeof window !== 'undefined' && kols.length > 0) {
-    console.log('[ROSTER PAGE] Stats:', { totalInfluencers: kols.length, totalSpend, totalImpressions, totalPosts, isDemo, kolCount: kols.length });
-    console.log('[ROSTER PAGE] KOL Details:', kols.map(k => ({ name: k.name, cost: k.total_cost, impressions: k.total_impressions, posts: k.num_posts })));
-  }
-  // #endregion
-
   // ============================================
   // RENDER
   // ============================================
