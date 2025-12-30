@@ -357,6 +357,14 @@ export class KOLService {
       throw new Error('Supabase not configured');
     }
 
+    // #region agent log
+    console.log('[KOL-SERVICE] createPost called:', input);
+    
+    // Check auth status
+    const { data: { user }, error: authError } = await this.supabase.auth.getUser();
+    console.log('[KOL-SERVICE] Auth status:', { userId: user?.id, authError: authError?.message });
+    // #endregion
+
     const { data, error } = await this.supabase
       .from('content_posts')
       .insert({
@@ -375,10 +383,15 @@ export class KOLService {
       .single();
 
     if (error || !data) {
-      console.error('Error creating post:', error);
+      // #region agent log
+      console.error('[KOL-SERVICE] ERROR creating post:', { error, errorMessage: error?.message, errorCode: error?.code });
+      // #endregion
       throw error;
     }
 
+    // #region agent log
+    console.log('[KOL-SERVICE] SUCCESS created post:', data);
+    // #endregion
     return data as ContentPost;
   }
 
@@ -390,6 +403,14 @@ export class KOLService {
       throw new Error('Supabase not configured');
     }
 
+    // #region agent log
+    console.log('[KOL-SERVICE] updatePost called:', { id, input });
+    
+    // Check auth status
+    const { data: { user }, error: authError } = await this.supabase.auth.getUser();
+    console.log('[KOL-SERVICE] Auth status:', { userId: user?.id, authError: authError?.message });
+    // #endregion
+
     const { data, error } = await this.supabase
       .from('content_posts')
       .update(input)
@@ -398,10 +419,15 @@ export class KOLService {
       .single();
 
     if (error || !data) {
-      console.error('Error updating post:', error);
+      // #region agent log
+      console.error('[KOL-SERVICE] ERROR updating post:', { error, errorMessage: error?.message, errorCode: error?.code });
+      // #endregion
       throw error;
     }
 
+    // #region agent log
+    console.log('[KOL-SERVICE] SUCCESS updated post:', data);
+    // #endregion
     return data as ContentPost;
   }
 

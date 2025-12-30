@@ -491,18 +491,24 @@ export function useKOLs(): UseKOLsReturn {
         updated_at: new Date().toISOString(),
       };
     } else {
-      newPost = await service.createPost({
-        kol_id: kolId,
-        platform: post.platform,
-        url: post.url,
-        title: post.title,
-        posted_date: post.posted_date,
-        impressions: post.impressions,
-        engagement: post.engagement,
-        clicks: post.clicks,
-        cost: post.cost,
-        notes: post.notes,
-      });
+      try {
+        newPost = await service.createPost({
+          kol_id: kolId,
+          platform: post.platform,
+          url: post.url,
+          title: post.title,
+          posted_date: post.posted_date,
+          impressions: post.impressions,
+          engagement: post.engagement,
+          clicks: post.clicks,
+          cost: post.cost,
+          notes: post.notes,
+        });
+        console.log('[USE-KOLS] Service createPost succeeded:', newPost);
+      } catch (err) {
+        console.error('[USE-KOLS] Service createPost FAILED:', err);
+        throw err;
+      }
     }
 
     setKols(prev => prev.map(kol => {
@@ -530,7 +536,13 @@ export function useKOLs(): UseKOLsReturn {
     // #endregion
 
     if (!isDemo) {
-      await service.updatePost(postId, post);
+      try {
+        await service.updatePost(postId, post);
+        console.log('[USE-KOLS] Service updatePost succeeded');
+      } catch (err) {
+        console.error('[USE-KOLS] Service updatePost FAILED:', err);
+        throw err;
+      }
     }
 
     setKols(prev => prev.map(kol => {
