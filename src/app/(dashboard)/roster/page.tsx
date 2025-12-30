@@ -164,38 +164,42 @@ export default function RosterPage() {
   const handlePostFormSubmit = async (formData: PostFormData) => {
     if (!selectedKOL) return;
 
-    if (postDrawerMode === 'add') {
-      await addPost(selectedKOL.id, {
-        platform: formData.platform,
-        url: formData.url,
-        title: formData.title || undefined,
-        posted_date: formData.posted_date,
-        impressions: parseInt(formData.impressions) || 0,
-        engagement: parseInt(formData.engagement) || undefined,
-        clicks: parseInt(formData.clicks) || undefined,
-        cost: parseFloat(formData.cost) || undefined,
-        notes: formData.notes || undefined,
-      });
+    try {
+      if (postDrawerMode === 'add') {
+        await addPost(selectedKOL.id, {
+          platform: formData.platform,
+          url: formData.url,
+          title: formData.title || undefined,
+          posted_date: formData.posted_date,
+          impressions: parseInt(formData.impressions) || 0,
+          engagement: parseInt(formData.engagement) || undefined,
+          clicks: parseInt(formData.clicks) || undefined,
+          cost: parseFloat(formData.cost) || undefined,
+          notes: formData.notes || undefined,
+        });
+        console.log('[ROSTER] Post added successfully');
+      } else if (postDrawerMode === 'edit' && selectedPost) {
+        await updatePost(selectedPost.id, {
+          platform: formData.platform,
+          url: formData.url,
+          title: formData.title || undefined,
+          posted_date: formData.posted_date,
+          impressions: parseInt(formData.impressions) || 0,
+          engagement: parseInt(formData.engagement) || undefined,
+          clicks: parseInt(formData.clicks) || undefined,
+          cost: parseFloat(formData.cost) || undefined,
+          notes: formData.notes || undefined,
+        });
+        console.log('[ROSTER] Post updated successfully');
+      }
 
-      // Refresh selectedKOL to show new post
-      const updatedKOL = kols.find(k => k.id === selectedKOL.id);
-      if (updatedKOL) setSelectedKOL(updatedKOL);
-    } else if (postDrawerMode === 'edit' && selectedPost) {
-      await updatePost(selectedPost.id, {
-        platform: formData.platform,
-        url: formData.url,
-        title: formData.title || undefined,
-        posted_date: formData.posted_date,
-        impressions: parseInt(formData.impressions) || 0,
-        engagement: parseInt(formData.engagement) || undefined,
-        clicks: parseInt(formData.clicks) || undefined,
-        cost: parseFloat(formData.cost) || undefined,
-        notes: formData.notes || undefined,
-      });
-
-      // Refresh selectedKOL to show updated post
-      const updatedKOL = kols.find(k => k.id === selectedKOL.id);
-      if (updatedKOL) setSelectedKOL(updatedKOL);
+      // Close the post drawer after successful save
+      // The kols state has been updated by addPost/updatePost
+      // syncedSelectedKOL will automatically reflect the changes on next render
+      closePostDrawer();
+    } catch (err) {
+      console.error('[ROSTER] Failed to save post:', err);
+      alert('Failed to save post. Please try again.');
     }
   };
 
