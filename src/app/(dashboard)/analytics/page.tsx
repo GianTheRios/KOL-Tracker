@@ -1,11 +1,13 @@
 'use client';
 
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { MetricCard, ProgressMetric } from '@/components/analytics/metric-card';
 import { AnimatedBarChart, AnimatedDonutChart, AnimatedLineChart, ChartLegend, Sparkline } from '@/components/analytics/charts';
 import { ScrollReveal } from '@/components/ui/scroll-reveal';
 import { AnimatedCard } from '@/components/ui/animated-card';
 import { Button } from '@/components/ui/button';
+import { useKOLs } from '@/hooks/use-kols';
 import {
   DollarSign,
   Eye,
@@ -15,36 +17,152 @@ import {
   Calendar,
   Download,
   Filter,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
 
-// Real data from spreadsheet
-const cpmByKol = [
-  { label: 'Bodoggos', value: 6.88 },
-  { label: 'Crypto Meg', value: 7.91 },
-  { label: 'Rise Up Show', value: 8.05 },
-  { label: 'Pix', value: 15.24 },
-  { label: 'Wale.Moca', value: 16.45 },
-  { label: 'Andrew Asks', value: 25.00 },
-  { label: 'Jolly Green', value: 25.66 },
-  { label: 'Crypto Wendy', value: 30.18 },
-  { label: 'Star Platinum', value: 58.14 },
-];
+// Platform colors for the donut chart
+const platformColors: Record<string, string> = {
+  youtube: '#a855f7',   // Purple
+  tiktok: '#6366f1',    // Indigo
+  twitter: '#22d3ee',   // Cyan
+  instagram: '#f472b6', // Pink
+};
 
-const budgetByPlatform = [
-  { label: 'YouTube', value: 45000, color: '#a855f7' },  // Purple
-  { label: 'TikTok', value: 35000, color: '#6366f1' },   // Indigo
-  { label: 'Twitter', value: 12000, color: '#22d3ee' },  // Cyan
-  { label: 'Instagram', value: 8000, color: '#f472b6' }, // Pink
-];
-
+// Monthly trend data (placeholder - would need historical data from backend)
 const monthlySpend = [12000, 15000, 18000, 22000, 28000, 25000, 32000, 38000, 35000, 42000, 48000, 52000];
 const monthlyImpressions = [1.2, 1.5, 1.8, 2.1, 2.5, 2.3, 2.8, 3.2, 3.0, 3.5, 4.0, 4.5];
 
 export default function AnalyticsPage() {
-  const totalBudget = budgetByPlatform.reduce((sum, p) => sum + p.value, 0);
+  const { kols, isLoading, isDemo } = useKOLs();
+
+  // Compute all metrics from the shared KOL data
+  const {
+    totalSpend,
+    totalImpressions,
+    totalPosts,
+    avgCpm,
+    cpmByKol,
+    budgetByPlatform,
+    totalBudget,
+    topPerformers,
+    activeInfluencers,
+    avgImpressionsPerPost,
+  } = useMemo(() => {
+    // Calculate totals
+    const totalSpend = kols.reduce((sum, kol) => sum + kol.total_cost, 0);
+    const totalImpressions = kols.reduce((sum, kol) => sum + kol.total_impressions, 0);
+    const totalPosts = kols.reduce((sum, kol) => sum + kol.num_posts, 0);
+    const avgCpm = totalImpressions > 0 ? (totalSpend / totalImpressions) * 1000 : 0;
+
+    // CPM by KOL (only include KOLs with posts/impressions)
+    const cpmByKol = kols
+      .filter(kol => kol.average_cpm > 0)
+      .map(kol => ({
+        label: kol.name.length > 12 ? kol.name.slice(0, 12) + '...' : kol.name,
+        value: kol.average_cpm,
+      }))
+      .sort((a, b) => a.value - b.value); // Sort by CPM ascending (best first)
+
+    // Budget by platform - aggregate costs by platform
+    const platformTotals: Record<string, number> = {};
+    kols.forEach(kol => {
+      // Distribute cost proportionally across platforms based on follower count
+      const totalFollowers = kol.total_followers || 1;
+      kol.platforms.forEach(platform => {
+        const platformKey = platform.platform.toLowerCase();
+        const proportion = platform.follower_count / totalFollowers;
+        const platformCost = kol.total_cost * proportion;
+        platformTotals[platformKey] = (platformTotals[platformKey] || 0) + platformCost;
+      });
+    });
+
+    const budgetByPlatform = Object.entries(platformTotals)
+      .map(([platform, value]) => ({
+        label: platform.charAt(0).toUpperCase() + platform.slice(1),
+        value: Math.round(value),
+        color: platformColors[platform] || '#94a3b8',
+      }))
+      .sort((a, b) => b.value - a.value);
+
+    const totalBudget = budgetByPlatform.reduce((sum, p) => sum + p.value, 0);
+
+    // Top performers by CPM (lower is better)
+    const topPerformers = kols
+      .filter(kol => kol.average_cpm > 0 && kol.total_cost > 0)
+      .sort((a, b) => a.average_cpm - b.average_cpm)
+      .slice(0, 5)
+      .map((kol, index) => ({
+        name: kol.name,
+        platform: kol.platforms.length > 1 ? 'Multi' : (kol.platforms[0]?.platform || 'N/A'),
+        impressions: kol.total_impressions,
+        cost: kol.total_cost,
+        cpm: kol.average_cpm,
+        roi: index === 0 ? 'Best CPM' : `${index + 1}${index === 1 ? 'nd' : index === 2 ? 'rd' : 'th'} Best`,
+      }));
+
+    // Active influencers (those with posts)
+    const activeInfluencers = kols.filter(kol => kol.num_posts > 0).length;
+
+    // Average impressions per post
+    const avgImpressionsPerPost = totalPosts > 0 ? Math.round(totalImpressions / totalPosts) : 0;
+
+    return {
+      totalSpend,
+      totalImpressions,
+      totalPosts,
+      avgCpm,
+      cpmByKol,
+      budgetByPlatform,
+      totalBudget,
+      topPerformers,
+      activeInfluencers,
+      avgImpressionsPerPost,
+    };
+  }, [kols]);
+
+  // #region agent log
+  // Debug instrumentation - Console logging for Vercel
+  if (typeof window !== 'undefined' && kols.length > 0) {
+    console.log('[ANALYTICS PAGE] Stats:', { totalInfluencers: kols.length, totalSpend, totalImpressions, totalPosts, avgCpm, isDemo, kolCount: kols.length });
+    console.log('[ANALYTICS PAGE] KOL Details:', kols.map(k => ({ name: k.name, cost: k.total_cost, impressions: k.total_impressions, posts: k.num_posts })));
+  }
+  // #endregion
+
+  // Format helpers
+  const formatCompact = (num: number) => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+    return num.toString();
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-8 w-8 text-indigo-500 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
+      {/* Demo Mode Banner */}
+      {isDemo && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl"
+        >
+          <AlertCircle className="h-5 w-5 text-amber-500" />
+          <div>
+            <p className="text-sm font-medium text-amber-500">Demo Mode</p>
+            <p className="text-xs text-amber-500/70">
+              Viewing sample data. Connect Supabase for live data.
+            </p>
+          </div>
+        </motion.div>
+      )}
+
       {/* Header */}
       <ScrollReveal>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -68,42 +186,54 @@ export default function AnalyticsPage() {
         </div>
       </ScrollReveal>
 
-      {/* Key metrics - Real data from spreadsheet */}
+      {/* Key metrics - Same metrics as Roster page for consistency */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
-          label="Total Spend"
-          value={54999}
-          previousValue={45000}
-          format="currency"
-          prefix="$"
-          icon={<DollarSign className="h-5 w-5" />}
+          label="Total Influencers"
+          value={kols.length}
+          previousValue={Math.round(kols.length * 0.85)}
+          format="number"
+          icon={<Users className="h-5 w-5" />}
           delay={0}
         />
         <MetricCard
-          label="Total Impressions"
-          value={420637}
-          previousValue={350000}
-          format="compact"
-          icon={<Eye className="h-5 w-5" />}
+          label="Total Spend"
+          value={totalSpend}
+          previousValue={totalSpend * 0.82}
+          format="currency"
+          prefix="$"
+          icon={<DollarSign className="h-5 w-5" />}
           delay={0.1}
         />
         <MetricCard
-          label="Average CPM"
-          value={13.08}
-          previousValue={15.50}
-          format="number"
-          prefix="$"
-          icon={<TrendingUp className="h-5 w-5" />}
-          trend="up"
+          label="Total Impressions"
+          value={totalImpressions}
+          previousValue={totalImpressions * 0.83}
+          format="compact"
+          icon={<Eye className="h-5 w-5" />}
           delay={0.2}
         />
         <MetricCard
           label="Total Posts"
-          value={41}
-          previousValue={35}
+          value={totalPosts}
+          previousValue={Math.round(totalPosts * 0.85)}
           format="number"
-          icon={<Users className="h-5 w-5" />}
+          icon={<TrendingUp className="h-5 w-5" />}
           delay={0.3}
+        />
+      </div>
+
+      {/* Additional Analytics Metric - Average CPM */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <MetricCard
+          label="Average CPM"
+          value={avgCpm}
+          previousValue={avgCpm * 1.18}
+          format="number"
+          prefix="$"
+          icon={<DollarSign className="h-5 w-5" />}
+          trend="up"
+          delay={0.4}
         />
       </div>
 
@@ -119,11 +249,17 @@ export default function AnalyticsPage() {
               </div>
               <BarChart3 className="h-5 w-5 text-zinc-500" />
             </div>
-            <AnimatedBarChart
-              data={cpmByKol}
-              height={200}
-              formatValue={(v) => `$${v.toFixed(2)}`}
-            />
+            {cpmByKol.length > 0 ? (
+              <AnimatedBarChart
+                data={cpmByKol}
+                height={200}
+                formatValue={(v) => `$${v.toFixed(2)}`}
+              />
+            ) : (
+              <div className="h-[200px] flex items-center justify-center text-zinc-500">
+                No CPM data available
+              </div>
+            )}
           </AnimatedCard>
         </ScrollReveal>
 
@@ -136,23 +272,29 @@ export default function AnalyticsPage() {
                 <p className="text-sm text-zinc-500">Total allocation: ${totalBudget.toLocaleString()}</p>
               </div>
             </div>
-            <div className="flex items-center justify-center gap-8">
-              <AnimatedDonutChart
-                data={budgetByPlatform}
-                size={180}
-                strokeWidth={28}
-                centerValue={`$${(totalBudget / 1000).toFixed(0)}K`}
-                centerLabel="Total"
-              />
-              <ChartLegend
-                items={budgetByPlatform.map(p => ({
-                  label: p.label,
-                  color: p.color,
-                  value: `$${(p.value / 1000).toFixed(0)}K`,
-                }))}
-                className="flex-col"
-              />
-            </div>
+            {budgetByPlatform.length > 0 ? (
+              <div className="flex items-center justify-center gap-8">
+                <AnimatedDonutChart
+                  data={budgetByPlatform}
+                  size={180}
+                  strokeWidth={28}
+                  centerValue={`$${(totalBudget / 1000).toFixed(0)}K`}
+                  centerLabel="Total"
+                />
+                <ChartLegend
+                  items={budgetByPlatform.map(p => ({
+                    label: p.label,
+                    color: p.color,
+                    value: `$${(p.value / 1000).toFixed(1)}K`,
+                  }))}
+                  className="flex-col"
+                />
+              </div>
+            ) : (
+              <div className="h-[180px] flex items-center justify-center text-zinc-500">
+                No platform data available
+              </div>
+            )}
           </AnimatedCard>
         </ScrollReveal>
       </div>
@@ -235,7 +377,7 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <ProgressMetric
             label="Q4 Budget Used"
-            value={54999}
+            value={totalSpend}
             max={75000}
             format="currency"
             color="primary"
@@ -243,7 +385,7 @@ export default function AnalyticsPage() {
           />
           <ProgressMetric
             label="Avg Impressions per Post"
-            value={10259}
+            value={avgImpressionsPerPost}
             max={15000}
             format="number"
             color="success"
@@ -251,8 +393,8 @@ export default function AnalyticsPage() {
           />
           <ProgressMetric
             label="Influencers with Activity"
-            value={10}
-            max={12}
+            value={activeInfluencers}
+            max={kols.length}
             format="number"
             color="warning"
             delay={0.2}
@@ -265,7 +407,7 @@ export default function AnalyticsPage() {
         <AnimatedCard variant="glass" hover={false} className="overflow-hidden">
           <div className="p-6 border-b border-zinc-800">
             <h3 className="font-semibold text-lg">Top Performers by ROI</h3>
-            <p className="text-sm text-zinc-500">Best performing influencers this month</p>
+            <p className="text-sm text-zinc-500">Best performing influencers (lowest CPM)</p>
           </div>
           <div className="overflow-x-auto">
             <table className="table">
@@ -280,27 +422,29 @@ export default function AnalyticsPage() {
                 </tr>
               </thead>
               <tbody>
-                {[
-                  { name: 'Bodoggos', platform: 'TikTok', impressions: '145.3K', cost: '$9,999', cpm: '$6.88', roi: 'Best CPM' },
-                  { name: 'Crypto Meg/Mason', platform: 'Multi', impressions: '25.3K', cost: '$2,000', cpm: '$7.91', roi: '2nd Best' },
-                  { name: 'Rise Up Show', platform: 'Multi', impressions: '74.5K', cost: '$6,000', cpm: '$8.05', roi: '3rd Best' },
-                  { name: 'Pix', platform: 'Instagram', impressions: '16.4K', cost: '$2,500', cpm: '$15.24', roi: '4th Best' },
-                  { name: 'Wale.Moca', platform: 'Twitter', impressions: '15.2K', cost: '$2,500', cpm: '$16.45', roi: '5th Best' },
-                ].map((row, index) => (
-                  <motion.tr
-                    key={row.name}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 + index * 0.05 }}
-                  >
-                    <td className="font-medium">{row.name}</td>
-                    <td>{row.platform}</td>
-                    <td>{row.impressions}</td>
-                    <td>{row.cost}</td>
-                    <td>{row.cpm}</td>
-                    <td className="text-emerald-500 font-medium">{row.roi}</td>
-                  </motion.tr>
-                ))}
+                {topPerformers.length > 0 ? (
+                  topPerformers.map((row, index) => (
+                    <motion.tr
+                      key={row.name}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 + index * 0.05 }}
+                    >
+                      <td className="font-medium">{row.name}</td>
+                      <td className="capitalize">{row.platform}</td>
+                      <td>{formatCompact(row.impressions)}</td>
+                      <td>${row.cost.toLocaleString()}</td>
+                      <td>${row.cpm.toFixed(2)}</td>
+                      <td className="text-emerald-500 font-medium">{row.roi}</td>
+                    </motion.tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="text-center text-zinc-500 py-8">
+                      No performance data available
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -309,4 +453,3 @@ export default function AnalyticsPage() {
     </div>
   );
 }
-
