@@ -44,7 +44,6 @@ export default function RosterPage() {
     kols,
     isLoading,
     error,
-    isDemo,
     addKOL,
     updateKOL,
     deleteKOL,
@@ -260,23 +259,6 @@ export default function RosterPage() {
 
   return (
     <div className="space-y-8">
-      {/* Demo Mode Banner */}
-      {isDemo && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl"
-        >
-          <AlertCircle className="h-5 w-5 text-amber-500" />
-          <div>
-            <p className="text-sm font-medium text-amber-500">Demo Mode</p>
-            <p className="text-xs text-amber-500/70">
-              Supabase not configured. Data won&apos;t persist after refresh.{' '}
-              <a href="#setup" className="underline hover:no-underline">Set up Supabase →</a>
-            </p>
-          </div>
-        </motion.div>
-      )}
 
       {/* Header */}
       <ScrollReveal>
@@ -396,7 +378,7 @@ export default function RosterPage() {
       )}
 
       {/* Error state */}
-      {error && !isDemo && (
+      {error && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

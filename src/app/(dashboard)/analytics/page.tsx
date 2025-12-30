@@ -18,7 +18,6 @@ import {
   Download,
   Filter,
   Loader2,
-  AlertCircle,
 } from 'lucide-react';
 
 // Platform colors for the donut chart
@@ -34,7 +33,7 @@ const monthlySpend = [12000, 15000, 18000, 22000, 28000, 25000, 32000, 38000, 35
 const monthlyImpressions = [1.2, 1.5, 1.8, 2.1, 2.5, 2.3, 2.8, 3.2, 3.0, 3.5, 4.0, 4.5];
 
 export default function AnalyticsPage() {
-  const { kols, isLoading, isDemo } = useKOLs();
+  const { kols, isLoading } = useKOLs();
 
   // Compute all metrics from the shared KOL data
   const {
@@ -138,22 +137,6 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-8">
-      {/* Demo Mode Banner */}
-      {isDemo && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl"
-        >
-          <AlertCircle className="h-5 w-5 text-amber-500" />
-          <div>
-            <p className="text-sm font-medium text-amber-500">Demo Mode</p>
-            <p className="text-xs text-amber-500/70">
-              Viewing sample data. Connect Supabase for live data.
-            </p>
-          </div>
-        </motion.div>
-      )}
 
       {/* Header */}
       <ScrollReveal>
