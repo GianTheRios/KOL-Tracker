@@ -171,10 +171,10 @@ export default function RosterPage() {
           url: formData.url,
           title: formData.title || undefined,
           posted_date: formData.posted_date,
-          impressions: parseInt(formData.impressions) || 0,
-          engagement: parseInt(formData.engagement) || undefined,
-          clicks: parseInt(formData.clicks) || undefined,
-          cost: parseFloat(formData.cost) || undefined,
+          impressions: formData.impressions !== '' ? parseInt(formData.impressions, 10) : 0,
+          engagement: formData.engagement !== '' ? parseInt(formData.engagement, 10) : undefined,
+          clicks: formData.clicks !== '' ? parseInt(formData.clicks, 10) : undefined,
+          cost: formData.cost !== '' ? parseFloat(formData.cost) : undefined,
           notes: formData.notes || undefined,
         });
         console.log('[ROSTER] Post added successfully');
@@ -184,10 +184,10 @@ export default function RosterPage() {
           url: formData.url,
           title: formData.title || undefined,
           posted_date: formData.posted_date,
-          impressions: parseInt(formData.impressions) || 0,
-          engagement: parseInt(formData.engagement) || undefined,
-          clicks: parseInt(formData.clicks) || undefined,
-          cost: parseFloat(formData.cost) || undefined,
+          impressions: formData.impressions !== '' ? parseInt(formData.impressions, 10) : 0,
+          engagement: formData.engagement !== '' ? parseInt(formData.engagement, 10) : undefined,
+          clicks: formData.clicks !== '' ? parseInt(formData.clicks, 10) : undefined,
+          cost: formData.cost !== '' ? parseFloat(formData.cost) : undefined,
           notes: formData.notes || undefined,
         });
         console.log('[ROSTER] Post updated successfully');
