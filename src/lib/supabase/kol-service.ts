@@ -413,16 +413,8 @@ export class KOLService {
       throw new Error('Supabase not configured');
     }
 
-    // #region agent log - Hypothesis C: What Supabase receives
-    console.log('[KOL-SERVICE] updatePost called:', { id, input });
-    console.log('[KOL-SERVICE] Input cost value:', input.cost, 'type:', typeof input.cost);
-    
-    // Check auth status
-    const { data: { user }, error: authError } = await this.supabase.auth.getUser();
-    console.log('[KOL-SERVICE] Auth status:', { userId: user?.id, authError: authError?.message });
-    
-    // Debug log to external file
-    fetch('http://127.0.0.1:7242/ingest/2a90f57d-26e2-4ae7-9ab4-5ecec198ac0b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kol-service.ts:updatePost:before',message:'Input to Supabase update',data:{id,input,costValue:input.cost,costType:typeof input.cost,hasCostKey:'cost' in input},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
+    // #region agent log
+    console.log('[KOL-SERVICE] updatePost - id:', id, 'input.cost:', input.cost, 'type:', typeof input.cost);
     // #endregion
 
     const { data, error } = await this.supabase
@@ -433,17 +425,12 @@ export class KOLService {
       .single();
 
     if (error || !data) {
-      // #region agent log
-      console.error('[KOL-SERVICE] ERROR updating post:', { error, errorMessage: error?.message, errorCode: error?.code });
-      fetch('http://127.0.0.1:7242/ingest/2a90f57d-26e2-4ae7-9ab4-5ecec198ac0b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kol-service.ts:updatePost:error',message:'Supabase update failed',data:{id,error:error?.message,code:error?.code},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
+      console.error('[KOL-SERVICE] ERROR updating post:', error?.message);
       throw error;
     }
 
-    // #region agent log - Hypothesis D: What Supabase returns
-    console.log('[KOL-SERVICE] SUCCESS updated post:', data);
-    console.log('[KOL-SERVICE] Returned cost value:', data.cost, 'type:', typeof data.cost);
-    fetch('http://127.0.0.1:7242/ingest/2a90f57d-26e2-4ae7-9ab4-5ecec198ac0b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kol-service.ts:updatePost:after',message:'Supabase response',data:{id:data.id,costBefore:input.cost,costAfter:data.cost,fullResponse:data},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})}).catch(()=>{});
+    // #region agent log
+    console.log('[KOL-SERVICE] SUCCESS - sent cost:', input.cost, '→ returned cost:', data.cost);
     // #endregion
     return data as ContentPost;
   }

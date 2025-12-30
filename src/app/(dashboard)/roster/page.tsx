@@ -164,25 +164,13 @@ export default function RosterPage() {
   const handlePostFormSubmit = async (formData: PostFormData) => {
     if (!selectedKOL) return;
 
-    // #region agent log - Hypothesis A: Form data capture
-    const debugPayload = {
-      rawFormData: {
-        cost: formData.cost,
-        costType: typeof formData.cost,
-        impressions: formData.impressions,
-        impressionsType: typeof formData.impressions,
-      },
-      parsedValues: {
-        cost: formData.cost !== '' ? parseFloat(formData.cost) : undefined,
-        costCheck: formData.cost !== '',
-        impressions: formData.impressions !== '' ? parseInt(formData.impressions, 10) : 0,
-      },
-      postDrawerMode,
-      selectedPostId: selectedPost?.id,
-      selectedPostOldCost: selectedPost?.cost,
-    };
-    console.log('[ROSTER-DEBUG] handlePostFormSubmit called:', debugPayload);
-    fetch('http://127.0.0.1:7242/ingest/2a90f57d-26e2-4ae7-9ab4-5ecec198ac0b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'roster/page.tsx:handlePostFormSubmit',message:'Form submission start',data:debugPayload,timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
+    // Parse cost - ALWAYS send a number value (0 if empty), never undefined
+    // Supabase ignores undefined fields, so we must explicitly send 0
+    const parsedCost = formData.cost.trim() === '' ? 0 : parseFloat(formData.cost);
+    const parsedImpressions = formData.impressions.trim() === '' ? 0 : parseInt(formData.impressions, 10);
+    
+    // #region agent log
+    console.log('[ROSTER] Form submission - cost input:', JSON.stringify(formData.cost), '→ parsed:', parsedCost);
     // #endregion
 
     try {
@@ -192,37 +180,34 @@ export default function RosterPage() {
           url: formData.url,
           title: formData.title || undefined,
           posted_date: formData.posted_date,
-          impressions: formData.impressions !== '' ? parseInt(formData.impressions, 10) : 0,
-          engagement: formData.engagement !== '' ? parseInt(formData.engagement, 10) : undefined,
-          clicks: formData.clicks !== '' ? parseInt(formData.clicks, 10) : undefined,
-          cost: formData.cost !== '' ? parseFloat(formData.cost) : undefined,
+          impressions: parsedImpressions,
+          engagement: formData.engagement.trim() !== '' ? parseInt(formData.engagement, 10) : undefined,
+          clicks: formData.clicks.trim() !== '' ? parseInt(formData.clicks, 10) : undefined,
+          cost: parsedCost,
           notes: formData.notes || undefined,
         });
         console.log('[ROSTER] Post added successfully');
       } else if (postDrawerMode === 'edit' && selectedPost) {
-        // #region agent log - Hypothesis B: Update payload
         const updatePayload = {
           platform: formData.platform,
           url: formData.url,
           title: formData.title || undefined,
           posted_date: formData.posted_date,
-          impressions: formData.impressions !== '' ? parseInt(formData.impressions, 10) : 0,
-          engagement: formData.engagement !== '' ? parseInt(formData.engagement, 10) : undefined,
-          clicks: formData.clicks !== '' ? parseInt(formData.clicks, 10) : undefined,
-          cost: formData.cost !== '' ? parseFloat(formData.cost) : undefined,
+          impressions: parsedImpressions,
+          engagement: formData.engagement.trim() !== '' ? parseInt(formData.engagement, 10) : undefined,
+          clicks: formData.clicks.trim() !== '' ? parseInt(formData.clicks, 10) : undefined,
+          cost: parsedCost,
           notes: formData.notes || undefined,
         };
-        console.log('[ROSTER-DEBUG] Update payload being sent:', updatePayload);
-        fetch('http://127.0.0.1:7242/ingest/2a90f57d-26e2-4ae7-9ab4-5ecec198ac0b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'roster/page.tsx:updatePayload',message:'Exact payload to updatePost',data:updatePayload,timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
+        
+        // #region agent log
+        console.log('[ROSTER] Update payload:', JSON.stringify(updatePayload));
         // #endregion
 
         await updatePost(selectedPost.id, updatePayload);
         console.log('[ROSTER] Post updated successfully');
       }
 
-      // Close the post drawer after successful save
-      // The kols state has been updated by addPost/updatePost
-      // syncedSelectedKOL will automatically reflect the changes on next render
       closePostDrawer();
     } catch (err) {
       console.error('[ROSTER] Failed to save post:', err);

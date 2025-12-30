@@ -217,72 +217,55 @@ export function useKOLs(): UseKOLsReturn {
   }, [service]);
 
   const updatePost = useCallback(async (postId: string, post: Partial<ContentPost>) => {
-    console.log('[USE-KOLS] updatePost: Updating post...', postId, post);
-    
-    // #region agent log - Hypothesis E: State update flow
-    fetch('http://127.0.0.1:7242/ingest/2a90f57d-26e2-4ae7-9ab4-5ecec198ac0b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'use-kols.ts:updatePost:start',message:'updatePost called in hook',data:{postId,postInput:post,costInInput:post.cost},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
+    // #region agent log
+    console.log('[USE-KOLS] updatePost called - postId:', postId, 'input cost:', post.cost);
     // #endregion
     
     try {
       const updatedPost = await service.updatePost(postId, post);
-      console.log('[USE-KOLS] updatePost: SUCCESS - Updated post:', updatedPost.id, 'kol_id:', updatedPost.kol_id);
-      console.log('[USE-KOLS] updatePost: Returned post cost:', updatedPost.cost);
       
       // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/2a90f57d-26e2-4ae7-9ab4-5ecec198ac0b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'use-kols.ts:updatePost:serviceReturned',message:'Service returned updated post',data:{postId:updatedPost.id,returnedCost:updatedPost.cost,fullPost:updatedPost},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
+      console.log('[USE-KOLS] updatePost SUCCESS - returned cost:', updatedPost.cost);
       // #endregion
       
       // Update local state - find the KOL that owns this post
       setKols(prev => {
-        // Debug: log all KOLs and their post counts
-        console.log('[USE-KOLS] updatePost: Searching for post in local state...');
-        prev.forEach(kol => {
-          const hasPost = kol.posts.some(p => p.id === postId);
-          console.log(`[USE-KOLS] KOL "${kol.name}" (${kol.id}): ${kol.posts.length} posts, hasPost: ${hasPost}`);
-        });
-        
         let foundPost = false;
-        let oldCost = 0;
         const updated = prev.map(kol => {
-      const postIndex = kol.posts.findIndex(p => p.id === postId);
-      if (postIndex === -1) return kol;
+          const postIndex = kol.posts.findIndex(p => p.id === postId);
+          if (postIndex === -1) return kol;
           
           foundPost = true;
-          oldCost = kol.posts[postIndex].cost || 0;
-          console.log('[USE-KOLS] updatePost: Found post in KOL:', kol.name, 'at index:', postIndex);
-          console.log('[USE-KOLS] updatePost: OLD cost:', oldCost, 'NEW cost:', updatedPost.cost);
-      
-      const posts = [...kol.posts];
-          posts[postIndex] = updatedPost;
-      
-      const total_impressions = posts.reduce((sum, p) => sum + (p.impressions || 0), 0);
-      const total_cost = posts.reduce((sum, p) => sum + (p.cost || 0), 0);
-          
-          console.log('[USE-KOLS] updatePost: New totals - impressions:', total_impressions, 'cost:', total_cost);
+          const oldCost = kol.posts[postIndex].cost || 0;
           
           // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/2a90f57d-26e2-4ae7-9ab4-5ecec198ac0b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'use-kols.ts:updatePost:stateUpdate',message:'State being updated',data:{kolName:kol.name,postIndex,oldCost,newCost:updatedPost.cost,newTotalCost:total_cost},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
+          console.log('[USE-KOLS] State update - OLD cost:', oldCost, '→ NEW cost:', updatedPost.cost);
           // #endregion
-      
-      return {
-        ...kol,
-        posts,
-        total_impressions,
-        total_cost,
-        average_cpm: total_impressions > 0 ? (total_cost / total_impressions) * 1000 : 0,
-      };
+          
+          const posts = [...kol.posts];
+          posts[postIndex] = updatedPost;
+          
+          const total_impressions = posts.reduce((sum, p) => sum + (p.impressions || 0), 0);
+          const total_cost = posts.reduce((sum, p) => sum + (p.cost || 0), 0);
+          
+          return {
+            ...kol,
+            posts,
+            total_impressions,
+            total_cost,
+            average_cpm: total_impressions > 0 ? (total_cost / total_impressions) * 1000 : 0,
+          };
         });
         
         if (!foundPost) {
-          console.error('[USE-KOLS] updatePost: POST NOT FOUND IN ANY KOL! postId:', postId);
-          console.error('[USE-KOLS] updatePost: The post exists in DB but not in local state. Triggering refetch...');
+          console.error('[USE-KOLS] POST NOT FOUND in local state:', postId);
         }
         
         return updated;
       });
       
     } catch (err) {
-      console.error('[USE-KOLS] updatePost: FAILED -', err);
+      console.error('[USE-KOLS] updatePost FAILED:', err);
       throw err;
     }
   }, [service]);
