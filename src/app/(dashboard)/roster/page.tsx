@@ -164,11 +164,10 @@ export default function RosterPage() {
   const handlePostFormSubmit = async (formData: PostFormData) => {
     if (!selectedKOL) return;
 
-    // v3: Parse cost - ALWAYS send a number (0 if empty), never undefined
+    // Parse cost - ALWAYS send a number (0 if empty), never undefined
+    // Supabase ignores undefined fields, so we must explicitly send 0
     const parsedCost = formData.cost.trim() === '' ? 0 : parseFloat(formData.cost);
     const parsedImpressions = formData.impressions.trim() === '' ? 0 : parseInt(formData.impressions, 10);
-    
-    console.log('[ROSTER v3] cost:', formData.cost, '→', parsedCost);
 
     try {
       if (postDrawerMode === 'add') {
@@ -183,7 +182,6 @@ export default function RosterPage() {
           cost: parsedCost,
           notes: formData.notes || undefined,
         });
-        console.log('[ROSTER] Post added successfully');
       } else if (postDrawerMode === 'edit' && selectedPost) {
         const updatePayload = {
           platform: formData.platform,
@@ -197,7 +195,6 @@ export default function RosterPage() {
           notes: formData.notes || undefined,
         };
         
-        console.log('[ROSTER v3] payload cost:', updatePayload.cost);
         await updatePost(selectedPost.id, updatePayload);
       }
 

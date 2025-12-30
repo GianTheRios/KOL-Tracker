@@ -45,7 +45,7 @@ export interface UseKOLsReturn {
 }
 
 // ============================================
-// HOOK IMPLEMENTATION - NO DEMO MODE
+// HOOK IMPLEMENTATION
 // ============================================
 
 export function useKOLs(): UseKOLsReturn {
@@ -62,7 +62,6 @@ export function useKOLs(): UseKOLsReturn {
   // ============================================
   
   const fetchKOLs = useCallback(async () => {
-    console.log('[USE-KOLS] fetchKOLs: Starting fetch from Supabase...');
     setIsLoading(true);
     setError(null);
 
@@ -72,10 +71,9 @@ export function useKOLs(): UseKOLsReturn {
       }
 
       const data = await service.fetchAllKOLs();
-      console.log('[USE-KOLS] fetchKOLs: SUCCESS - Loaded', data.length, 'KOLs from Supabase');
       setKols(data);
     } catch (err) {
-      console.error('[USE-KOLS] fetchKOLs: FAILED -', err);
+      console.error('Failed to fetch KOLs:', err);
       setError(err instanceof Error ? err : new Error('Failed to fetch KOLs'));
     } finally {
       setIsLoading(false);
@@ -87,7 +85,7 @@ export function useKOLs(): UseKOLsReturn {
   }, [fetchKOLs]);
 
   // ============================================
-  // KOL OPERATIONS - ALL GO THROUGH SUPABASE
+  // KOL OPERATIONS
   // ============================================
 
   const addKOL = useCallback(async (data: {
@@ -98,32 +96,24 @@ export function useKOLs(): UseKOLsReturn {
     platforms: { platform: Platform; profileUrl: string; followerCount: string }[];
     documents: { name: string; type: DocumentType; size: number }[];
   }) => {
-    console.log('[USE-KOLS] addKOL: Creating new KOL...', data.name);
+    const newKOL = await service.createKOL({
+      name: data.name,
+      email: data.email,
+      telegram_handle: data.telegramHandle,
+      status: data.status,
+      platforms: data.platforms.map(p => ({
+        platform: p.platform,
+        profile_url: p.profileUrl,
+        follower_count: parseInt(p.followerCount) || 0,
+      })),
+      documents: data.documents.map(d => ({
+        name: d.name,
+        type: d.type,
+        size: d.size,
+      })),
+    });
     
-    try {
-      const newKOL = await service.createKOL({
-        name: data.name,
-        email: data.email,
-        telegram_handle: data.telegramHandle,
-        status: data.status,
-        platforms: data.platforms.map(p => ({
-          platform: p.platform,
-          profile_url: p.profileUrl,
-          follower_count: parseInt(p.followerCount) || 0,
-        })),
-        documents: data.documents.map(d => ({
-          name: d.name,
-          type: d.type,
-          size: d.size,
-        })),
-      });
-      
-      console.log('[USE-KOLS] addKOL: SUCCESS - Created KOL:', newKOL.id);
-      setKols(prev => [newKOL, ...prev]);
-    } catch (err) {
-      console.error('[USE-KOLS] addKOL: FAILED -', err);
-      throw err;
-    }
+    setKols(prev => [newKOL, ...prev]);
   }, [service]);
 
   const updateKOL = useCallback(async (id: string, data: {
@@ -133,9 +123,6 @@ export function useKOLs(): UseKOLsReturn {
     status: KOLStatus;
     platforms: { platform: Platform; profileUrl: string; followerCount: string }[];
   }) => {
-    console.log('[USE-KOLS] updateKOL: Updating KOL...', id);
-    
-    try {
     const updatedKOL = await service.updateKOL({
       id,
       name: data.name,
@@ -148,54 +135,35 @@ export function useKOLs(): UseKOLsReturn {
         follower_count: parseInt(p.followerCount) || 0,
       })),
     });
-      
+    
     if (updatedKOL) {
-        console.log('[USE-KOLS] updateKOL: SUCCESS');
       setKols(prev => prev.map(kol => kol.id === id ? updatedKOL : kol));
-      }
-    } catch (err) {
-      console.error('[USE-KOLS] updateKOL: FAILED -', err);
-      throw err;
     }
   }, [service]);
 
   const deleteKOL = useCallback(async (id: string) => {
-    console.log('[USE-KOLS] deleteKOL: Deleting KOL...', id);
-    
-    try {
-      await service.deleteKOL(id);
-      console.log('[USE-KOLS] deleteKOL: SUCCESS');
-      setKols(prev => prev.filter(kol => kol.id !== id));
-    } catch (err) {
-      console.error('[USE-KOLS] deleteKOL: FAILED -', err);
-      throw err;
-    }
+    await service.deleteKOL(id);
+    setKols(prev => prev.filter(kol => kol.id !== id));
   }, [service]);
 
   // ============================================
-  // POST OPERATIONS - ALL GO THROUGH SUPABASE
+  // POST OPERATIONS
   // ============================================
 
   const addPost = useCallback(async (kolId: string, post: Omit<ContentPost, 'id' | 'kol_id' | 'created_at' | 'updated_at'>) => {
-    console.log('[USE-KOLS] addPost: Creating post for KOL...', kolId);
-    
-    try {
-      const newPost = await service.createPost({
-        kol_id: kolId,
-        platform: post.platform,
-        url: post.url,
-        title: post.title,
-        posted_date: post.posted_date,
-        impressions: post.impressions,
-        engagement: post.engagement,
-        clicks: post.clicks,
-        cost: post.cost,
-        notes: post.notes,
-      });
-      
-      console.log('[USE-KOLS] addPost: SUCCESS - Created post:', newPost.id);
+    const newPost = await service.createPost({
+      kol_id: kolId,
+      platform: post.platform,
+      url: post.url,
+      title: post.title,
+      posted_date: post.posted_date,
+      impressions: post.impressions,
+      engagement: post.engagement,
+      clicks: post.clicks,
+      cost: post.cost,
+      notes: post.notes,
+    });
 
-      // Update local state
     setKols(prev => prev.map(kol => {
       if (kol.id !== kolId) return kol;
       const posts = [...kol.posts, newPost];
@@ -210,54 +178,33 @@ export function useKOLs(): UseKOLsReturn {
         average_cpm: total_impressions > 0 ? (total_cost / total_impressions) * 1000 : 0,
       };
     }));
-    } catch (err) {
-      console.error('[USE-KOLS] addPost: FAILED -', err);
-      throw err;
-    }
   }, [service]);
 
   const updatePost = useCallback(async (postId: string, post: Partial<ContentPost>) => {
-    console.log('[HOOK v3] updatePost - cost:', post.cost);
+    const updatedPost = await service.updatePost(postId, post);
     
-    try {
-      const updatedPost = await service.updatePost(postId, post);
-      console.log('[HOOK v3] returned cost:', updatedPost.cost);
+    setKols(prev => prev.map(kol => {
+      const postIndex = kol.posts.findIndex(p => p.id === postId);
+      if (postIndex === -1) return kol;
       
-      // Update local state
-      setKols(prev => prev.map(kol => {
-        const postIndex = kol.posts.findIndex(p => p.id === postId);
-        if (postIndex === -1) return kol;
-        
-        const oldCost = kol.posts[postIndex].cost || 0;
-        console.log('[HOOK v3] state:', oldCost, '→', updatedPost.cost);
-        
-        const posts = [...kol.posts];
-        posts[postIndex] = updatedPost;
-        
-        const total_impressions = posts.reduce((sum, p) => sum + (p.impressions || 0), 0);
-        const total_cost = posts.reduce((sum, p) => sum + (p.cost || 0), 0);
-        
-        return {
-          ...kol,
-          posts,
-          total_impressions,
-          total_cost,
-          average_cpm: total_impressions > 0 ? (total_cost / total_impressions) * 1000 : 0,
-        };
-      }));
+      const posts = [...kol.posts];
+      posts[postIndex] = updatedPost;
       
-    } catch (err) {
-      console.error('[HOOK v3] FAILED:', err);
-      throw err;
-    }
+      const total_impressions = posts.reduce((sum, p) => sum + (p.impressions || 0), 0);
+      const total_cost = posts.reduce((sum, p) => sum + (p.cost || 0), 0);
+      
+      return {
+        ...kol,
+        posts,
+        total_impressions,
+        total_cost,
+        average_cpm: total_impressions > 0 ? (total_cost / total_impressions) * 1000 : 0,
+      };
+    }));
   }, [service]);
 
   const deletePost = useCallback(async (kolId: string, postId: string) => {
-    console.log('[USE-KOLS] deletePost: Deleting post...', postId);
-    
-    try {
-      await service.deletePost(postId);
-      console.log('[USE-KOLS] deletePost: SUCCESS');
+    await service.deletePost(postId);
 
     setKols(prev => prev.map(kol => {
       if (kol.id !== kolId) return kol;
@@ -273,30 +220,21 @@ export function useKOLs(): UseKOLsReturn {
         average_cpm: total_impressions > 0 ? (total_cost / total_impressions) * 1000 : 0,
       };
     }));
-    } catch (err) {
-      console.error('[USE-KOLS] deletePost: FAILED -', err);
-      throw err;
-    }
   }, [service]);
 
   // ============================================
-  // DOCUMENT OPERATIONS - ALL GO THROUGH SUPABASE
+  // DOCUMENT OPERATIONS
   // ============================================
 
   const addDocuments = useCallback(async (kolId: string, docs: { name: string; type: DocumentType; size: number; url?: string; file_path?: string }[]) => {
-    console.log('[USE-KOLS] addDocuments: Adding documents for KOL...', kolId);
-    
-    try {
-      const newDocs = await service.createDocuments(docs.map(d => ({
-        kol_id: kolId,
-        name: d.name,
-        type: d.type,
-        size: d.size,
-        url: d.url,
-        file_path: d.file_path,
-      })));
-      
-      console.log('[USE-KOLS] addDocuments: SUCCESS - Added', newDocs.length, 'documents');
+    const newDocs = await service.createDocuments(docs.map(d => ({
+      kol_id: kolId,
+      name: d.name,
+      type: d.type,
+      size: d.size,
+      url: d.url,
+      file_path: d.file_path,
+    })));
 
     setKols(prev => prev.map(kol => {
       if (kol.id !== kolId) return kol;
@@ -305,18 +243,10 @@ export function useKOLs(): UseKOLsReturn {
         documents: [...kol.documents, ...newDocs],
       };
     }));
-    } catch (err) {
-      console.error('[USE-KOLS] addDocuments: FAILED -', err);
-      throw err;
-    }
   }, [service]);
 
   const deleteDocument = useCallback(async (kolId: string, docId: string) => {
-    console.log('[USE-KOLS] deleteDocument: Deleting document...', docId);
-    
-    try {
-      await service.deleteDocument(docId);
-      console.log('[USE-KOLS] deleteDocument: SUCCESS');
+    await service.deleteDocument(docId);
 
     setKols(prev => prev.map(kol => {
       if (kol.id !== kolId) return kol;
@@ -325,10 +255,6 @@ export function useKOLs(): UseKOLsReturn {
         documents: kol.documents.filter(d => d.id !== docId),
       };
     }));
-    } catch (err) {
-      console.error('[USE-KOLS] deleteDocument: FAILED -', err);
-      throw err;
-    }
   }, [service]);
 
   // ============================================

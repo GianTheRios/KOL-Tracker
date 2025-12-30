@@ -134,11 +134,6 @@ export class KOLService {
     const posts = postsRes.data || [];
     const documents = documentsRes.data || [];
 
-    // Debug: log what we fetched
-    console.log('[KOL-SERVICE] fetchAllKOLs: Fetched', posts.length, 'total posts from DB');
-    console.log('[KOL-SERVICE] fetchAllKOLs: KOL IDs:', kolIds);
-    console.log('[KOL-SERVICE] fetchAllKOLs: Post kol_ids:', posts.map(p => p.kol_id));
-
     // Combine data
     const result = kols.map(kol => {
       const kolPlatforms = platforms.filter(p => p.kol_id === kol.id) as KOLPlatform[];
@@ -152,11 +147,6 @@ export class KOLService {
       })) as KOLDocument[];
 
       const metrics = calculateMetrics(kolPosts);
-      
-      // Debug: log posts per KOL
-      if (kolPosts.length > 0) {
-        console.log(`[KOL-SERVICE] fetchAllKOLs: KOL "${kol.name}" has ${kolPosts.length} posts, total_cost: ${metrics.total_cost}`);
-      }
 
       return {
         ...kol,
@@ -367,14 +357,6 @@ export class KOLService {
       throw new Error('Supabase not configured');
     }
 
-    // #region agent log
-    console.log('[KOL-SERVICE] createPost called:', input);
-    
-    // Check auth status
-    const { data: { user }, error: authError } = await this.supabase.auth.getUser();
-    console.log('[KOL-SERVICE] Auth status:', { userId: user?.id, authError: authError?.message });
-    // #endregion
-
     const { data, error } = await this.supabase
       .from('content_posts')
       .insert({
@@ -393,15 +375,10 @@ export class KOLService {
       .single();
 
     if (error || !data) {
-      // #region agent log
-      console.error('[KOL-SERVICE] ERROR creating post:', { error, errorMessage: error?.message, errorCode: error?.code });
-      // #endregion
+      console.error('Error creating post:', error);
       throw error;
     }
 
-    // #region agent log
-    console.log('[KOL-SERVICE] SUCCESS created post:', data);
-    // #endregion
     return data as ContentPost;
   }
 
@@ -413,8 +390,6 @@ export class KOLService {
       throw new Error('Supabase not configured');
     }
 
-    console.log('[SERVICE v3] updatePost - input cost:', input.cost, typeof input.cost);
-
     const { data, error } = await this.supabase
       .from('content_posts')
       .update(input)
@@ -423,11 +398,10 @@ export class KOLService {
       .single();
 
     if (error || !data) {
-      console.error('[SERVICE v3] ERROR:', error?.message);
+      console.error('Error updating post:', error);
       throw error;
     }
 
-    console.log('[SERVICE v3] sent:', input.cost, '→ got:', data.cost);
     return data as ContentPost;
   }
 
