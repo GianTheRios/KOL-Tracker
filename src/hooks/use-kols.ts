@@ -136,22 +136,22 @@ export function useKOLs(): UseKOLsReturn {
     console.log('[USE-KOLS] updateKOL: Updating KOL...', id);
     
     try {
-      const updatedKOL = await service.updateKOL({
-        id,
-        name: data.name,
-        email: data.email,
-        telegram_handle: data.telegramHandle,
-        status: data.status,
-        platforms: data.platforms.map(p => ({
-          platform: p.platform,
-          profile_url: p.profileUrl,
-          follower_count: parseInt(p.followerCount) || 0,
-        })),
-      });
+    const updatedKOL = await service.updateKOL({
+      id,
+      name: data.name,
+      email: data.email,
+      telegram_handle: data.telegramHandle,
+      status: data.status,
+      platforms: data.platforms.map(p => ({
+        platform: p.platform,
+        profile_url: p.profileUrl,
+        follower_count: parseInt(p.followerCount) || 0,
+      })),
+    });
       
-      if (updatedKOL) {
+    if (updatedKOL) {
         console.log('[USE-KOLS] updateKOL: SUCCESS');
-        setKols(prev => prev.map(kol => kol.id === id ? updatedKOL : kol));
+      setKols(prev => prev.map(kol => kol.id === id ? updatedKOL : kol));
       }
     } catch (err) {
       console.error('[USE-KOLS] updateKOL: FAILED -', err);
@@ -194,22 +194,22 @@ export function useKOLs(): UseKOLsReturn {
       });
       
       console.log('[USE-KOLS] addPost: SUCCESS - Created post:', newPost.id);
-      
+
       // Update local state
-      setKols(prev => prev.map(kol => {
-        if (kol.id !== kolId) return kol;
-        const posts = [...kol.posts, newPost];
-        const total_impressions = posts.reduce((sum, p) => sum + (p.impressions || 0), 0);
-        const total_cost = posts.reduce((sum, p) => sum + (p.cost || 0), 0);
-        return {
-          ...kol,
-          posts,
-          num_posts: posts.length,
-          total_impressions,
-          total_cost,
-          average_cpm: total_impressions > 0 ? (total_cost / total_impressions) * 1000 : 0,
-        };
-      }));
+    setKols(prev => prev.map(kol => {
+      if (kol.id !== kolId) return kol;
+      const posts = [...kol.posts, newPost];
+      const total_impressions = posts.reduce((sum, p) => sum + (p.impressions || 0), 0);
+      const total_cost = posts.reduce((sum, p) => sum + (p.cost || 0), 0);
+      return {
+        ...kol,
+        posts,
+        num_posts: posts.length,
+        total_impressions,
+        total_cost,
+        average_cpm: total_impressions > 0 ? (total_cost / total_impressions) * 1000 : 0,
+      };
+    }));
     } catch (err) {
       console.error('[USE-KOLS] addPost: FAILED -', err);
       throw err;
@@ -219,9 +219,18 @@ export function useKOLs(): UseKOLsReturn {
   const updatePost = useCallback(async (postId: string, post: Partial<ContentPost>) => {
     console.log('[USE-KOLS] updatePost: Updating post...', postId, post);
     
+    // #region agent log - Hypothesis E: State update flow
+    fetch('http://127.0.0.1:7242/ingest/2a90f57d-26e2-4ae7-9ab4-5ecec198ac0b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'use-kols.ts:updatePost:start',message:'updatePost called in hook',data:{postId,postInput:post,costInInput:post.cost},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
+    // #endregion
+    
     try {
       const updatedPost = await service.updatePost(postId, post);
       console.log('[USE-KOLS] updatePost: SUCCESS - Updated post:', updatedPost.id, 'kol_id:', updatedPost.kol_id);
+      console.log('[USE-KOLS] updatePost: Returned post cost:', updatedPost.cost);
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/2a90f57d-26e2-4ae7-9ab4-5ecec198ac0b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'use-kols.ts:updatePost:serviceReturned',message:'Service returned updated post',data:{postId:updatedPost.id,returnedCost:updatedPost.cost,fullPost:updatedPost},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
+      // #endregion
       
       // Update local state - find the KOL that owns this post
       setKols(prev => {
@@ -233,28 +242,35 @@ export function useKOLs(): UseKOLsReturn {
         });
         
         let foundPost = false;
+        let oldCost = 0;
         const updated = prev.map(kol => {
-          const postIndex = kol.posts.findIndex(p => p.id === postId);
-          if (postIndex === -1) return kol;
+      const postIndex = kol.posts.findIndex(p => p.id === postId);
+      if (postIndex === -1) return kol;
           
           foundPost = true;
+          oldCost = kol.posts[postIndex].cost || 0;
           console.log('[USE-KOLS] updatePost: Found post in KOL:', kol.name, 'at index:', postIndex);
-          
-          const posts = [...kol.posts];
+          console.log('[USE-KOLS] updatePost: OLD cost:', oldCost, 'NEW cost:', updatedPost.cost);
+      
+      const posts = [...kol.posts];
           posts[postIndex] = updatedPost;
-          
-          const total_impressions = posts.reduce((sum, p) => sum + (p.impressions || 0), 0);
-          const total_cost = posts.reduce((sum, p) => sum + (p.cost || 0), 0);
+      
+      const total_impressions = posts.reduce((sum, p) => sum + (p.impressions || 0), 0);
+      const total_cost = posts.reduce((sum, p) => sum + (p.cost || 0), 0);
           
           console.log('[USE-KOLS] updatePost: New totals - impressions:', total_impressions, 'cost:', total_cost);
           
-          return {
-            ...kol,
-            posts,
-            total_impressions,
-            total_cost,
-            average_cpm: total_impressions > 0 ? (total_cost / total_impressions) * 1000 : 0,
-          };
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/2a90f57d-26e2-4ae7-9ab4-5ecec198ac0b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'use-kols.ts:updatePost:stateUpdate',message:'State being updated',data:{kolName:kol.name,postIndex,oldCost,newCost:updatedPost.cost,newTotalCost:total_cost},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
+          // #endregion
+      
+      return {
+        ...kol,
+        posts,
+        total_impressions,
+        total_cost,
+        average_cpm: total_impressions > 0 ? (total_cost / total_impressions) * 1000 : 0,
+      };
         });
         
         if (!foundPost) {
@@ -277,21 +293,21 @@ export function useKOLs(): UseKOLsReturn {
     try {
       await service.deletePost(postId);
       console.log('[USE-KOLS] deletePost: SUCCESS');
-      
-      setKols(prev => prev.map(kol => {
-        if (kol.id !== kolId) return kol;
-        const posts = kol.posts.filter(p => p.id !== postId);
-        const total_impressions = posts.reduce((sum, p) => sum + (p.impressions || 0), 0);
-        const total_cost = posts.reduce((sum, p) => sum + (p.cost || 0), 0);
-        return {
-          ...kol,
-          posts,
-          num_posts: posts.length,
-          total_impressions,
-          total_cost,
-          average_cpm: total_impressions > 0 ? (total_cost / total_impressions) * 1000 : 0,
-        };
-      }));
+
+    setKols(prev => prev.map(kol => {
+      if (kol.id !== kolId) return kol;
+      const posts = kol.posts.filter(p => p.id !== postId);
+      const total_impressions = posts.reduce((sum, p) => sum + (p.impressions || 0), 0);
+      const total_cost = posts.reduce((sum, p) => sum + (p.cost || 0), 0);
+      return {
+        ...kol,
+        posts,
+        num_posts: posts.length,
+        total_impressions,
+        total_cost,
+        average_cpm: total_impressions > 0 ? (total_cost / total_impressions) * 1000 : 0,
+      };
+    }));
     } catch (err) {
       console.error('[USE-KOLS] deletePost: FAILED -', err);
       throw err;
@@ -316,14 +332,14 @@ export function useKOLs(): UseKOLsReturn {
       })));
       
       console.log('[USE-KOLS] addDocuments: SUCCESS - Added', newDocs.length, 'documents');
-      
-      setKols(prev => prev.map(kol => {
-        if (kol.id !== kolId) return kol;
-        return {
-          ...kol,
-          documents: [...kol.documents, ...newDocs],
-        };
-      }));
+
+    setKols(prev => prev.map(kol => {
+      if (kol.id !== kolId) return kol;
+      return {
+        ...kol,
+        documents: [...kol.documents, ...newDocs],
+      };
+    }));
     } catch (err) {
       console.error('[USE-KOLS] addDocuments: FAILED -', err);
       throw err;
@@ -336,14 +352,14 @@ export function useKOLs(): UseKOLsReturn {
     try {
       await service.deleteDocument(docId);
       console.log('[USE-KOLS] deleteDocument: SUCCESS');
-      
-      setKols(prev => prev.map(kol => {
-        if (kol.id !== kolId) return kol;
-        return {
-          ...kol,
-          documents: kol.documents.filter(d => d.id !== docId),
-        };
-      }));
+
+    setKols(prev => prev.map(kol => {
+      if (kol.id !== kolId) return kol;
+      return {
+        ...kol,
+        documents: kol.documents.filter(d => d.id !== docId),
+      };
+    }));
     } catch (err) {
       console.error('[USE-KOLS] deleteDocument: FAILED -', err);
       throw err;

@@ -164,6 +164,27 @@ export default function RosterPage() {
   const handlePostFormSubmit = async (formData: PostFormData) => {
     if (!selectedKOL) return;
 
+    // #region agent log - Hypothesis A: Form data capture
+    const debugPayload = {
+      rawFormData: {
+        cost: formData.cost,
+        costType: typeof formData.cost,
+        impressions: formData.impressions,
+        impressionsType: typeof formData.impressions,
+      },
+      parsedValues: {
+        cost: formData.cost !== '' ? parseFloat(formData.cost) : undefined,
+        costCheck: formData.cost !== '',
+        impressions: formData.impressions !== '' ? parseInt(formData.impressions, 10) : 0,
+      },
+      postDrawerMode,
+      selectedPostId: selectedPost?.id,
+      selectedPostOldCost: selectedPost?.cost,
+    };
+    console.log('[ROSTER-DEBUG] handlePostFormSubmit called:', debugPayload);
+    fetch('http://127.0.0.1:7242/ingest/2a90f57d-26e2-4ae7-9ab4-5ecec198ac0b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'roster/page.tsx:handlePostFormSubmit',message:'Form submission start',data:debugPayload,timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+
     try {
       if (postDrawerMode === 'add') {
         await addPost(selectedKOL.id, {
@@ -179,7 +200,8 @@ export default function RosterPage() {
         });
         console.log('[ROSTER] Post added successfully');
       } else if (postDrawerMode === 'edit' && selectedPost) {
-        await updatePost(selectedPost.id, {
+        // #region agent log - Hypothesis B: Update payload
+        const updatePayload = {
           platform: formData.platform,
           url: formData.url,
           title: formData.title || undefined,
@@ -189,7 +211,12 @@ export default function RosterPage() {
           clicks: formData.clicks !== '' ? parseInt(formData.clicks, 10) : undefined,
           cost: formData.cost !== '' ? parseFloat(formData.cost) : undefined,
           notes: formData.notes || undefined,
-        });
+        };
+        console.log('[ROSTER-DEBUG] Update payload being sent:', updatePayload);
+        fetch('http://127.0.0.1:7242/ingest/2a90f57d-26e2-4ae7-9ab4-5ecec198ac0b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'roster/page.tsx:updatePayload',message:'Exact payload to updatePost',data:updatePayload,timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
+
+        await updatePost(selectedPost.id, updatePayload);
         console.log('[ROSTER] Post updated successfully');
       }
 
