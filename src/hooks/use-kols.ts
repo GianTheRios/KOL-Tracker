@@ -311,6 +311,9 @@ export function useKOLs(): UseKOLsReturn {
 
     try {
       if (!service.isAvailable()) {
+        // #region agent log
+        console.log('[USE-KOLS] Running in DEMO MODE - Supabase not configured. Changes will NOT persist after refresh.');
+        // #endregion
         setKols(demoKOLs);
         setIsDemo(true);
         return;
@@ -472,7 +475,14 @@ export function useKOLs(): UseKOLsReturn {
   const addPost = useCallback(async (kolId: string, post: Omit<ContentPost, 'id' | 'kol_id' | 'created_at' | 'updated_at'>) => {
     let newPost: ContentPost;
 
+    // #region agent log
+    console.log('[USE-KOLS] addPost called:', { kolId, post, isDemo });
+    // #endregion
+
     if (isDemo) {
+      // #region agent log
+      console.warn('[USE-KOLS] DEMO MODE: Post added to local state only. Will NOT persist after refresh!');
+      // #endregion
       newPost = {
         ...post,
         id: `demo-post-${Date.now()}`,
@@ -512,6 +522,13 @@ export function useKOLs(): UseKOLsReturn {
   }, [isDemo, service]);
 
   const updatePost = useCallback(async (postId: string, post: Partial<ContentPost>) => {
+    // #region agent log
+    console.log('[USE-KOLS] updatePost called:', { postId, post, isDemo });
+    if (isDemo) {
+      console.warn('[USE-KOLS] DEMO MODE: Post updated in local state only. Will NOT persist after refresh!');
+    }
+    // #endregion
+
     if (!isDemo) {
       await service.updatePost(postId, post);
     }

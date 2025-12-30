@@ -3,7 +3,17 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 // Check if Supabase is configured
 export function isSupabaseConfigured(): boolean {
-  return !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  const hasUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const hasKey = !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // #region agent log
+  console.log('[SUPABASE CLIENT] Configuration check:', { 
+    hasUrl, 
+    hasKey, 
+    isConfigured: hasUrl && hasKey,
+    url: hasUrl ? process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30) + '...' : 'NOT SET'
+  });
+  // #endregion
+  return hasUrl && hasKey;
 }
 
 export function createClient(): SupabaseClient | null {
